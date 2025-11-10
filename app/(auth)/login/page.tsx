@@ -28,18 +28,16 @@ export default function Login() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
 
-    // Tipado del useEffect para la sesión de Supabase
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_IN' && session) {
-                router.push("/dashboard");
+                router.push("/");
             }
         });
 
-        // Verificar sesión existente
         supabase.auth.getSession().then(({ data: { session } }) => {
             if (session) {
-                redirect("/dashboard");
+                redirect("/");
             }
         });
 
