@@ -157,20 +157,132 @@ The project includes a multi-stage Dockerfile optimized for Next.js standalone o
 - Error handling with user feedback on Step 8
 - Numeric fields (edad, peso, estatura) are stored as numbers, not strings
 
+## Critical Architecture Decisions
+
+### Server vs Client Components
+
+**Server Components (default):**
+- Use for pages that need auth verification before rendering
+- Example: `app/dashboard/page.tsx` - checks session server-side before rendering
+- Can use `redirect()` directly in async component body
+- Use `createClient()` from `@/lib/supabase/server`
+
+**Client Components (use 'use client'):**
+- Required for interactivity (onClick, useState, useEffect)
+- All onboarding steps are Client Components (need form interactions)
+- Auth pages (login/register) are Client Components (forms + navigation)
+- Use `useAuth()` hook for auth state in Client Components
+- Use `createClient()` from `@/lib/supabase/client`
+- Use `router.push()` or `router.replace()` for navigation (NOT `redirect()`)
+
+### Supabase SSR Architecture
+
+**Three Client Types (IMPORTANT - use correct one):**
+
+1. **Browser Client** (`lib/supabase/client.ts`):
+   ```typescript
+   import { createClient } from '@/lib/supabase/client'
+   ```
+   - For Client Components only
+   - Handles cookies automatically in browser
+   - Used in: login, register, useAuth hook
+
+2. **Server Client** (`lib/supabase/server.ts`):
+   ```typescript
+   import { createClient } from '@/lib/supabase/server'
+   ```
+   - For Server Components, Server Actions, Route Handlers
+   - Async function that returns client
+   - Manages cookies via Next.js `cookies()` API
+   - Used in: dashboard, API routes
+
+3. **Middleware Client** (`lib/supabase/middleware.ts`):
+   ```typescript
+   import { updateSession } from '@/lib/supabase/middleware'
+   ```
+   - **Do NOT import directly** - used only by `middleware.ts`
+   - Handles session refresh and route protection
+   - Returns modified NextResponse with updated cookies
+
+### Route Protection Pattern
+
+**Edge Middleware** (`middleware.ts`):
+- Runs on ALL requests (see config matcher)
+- Calls `updateSession()` which:
+  1. Refreshes Supabase session automatically
+  2. Redirects unauthenticated users from protected pages to `/login`
+  3. Redirects authenticated users from auth pages to `/dashboard`
+- Protected routes: `/dashboard`, `/onboarding`
+- Public routes: `/login`, `/register`
+
+**Important**: Do NOT add auth checks in `useEffect` with `redirect()` - this creates infinite loops. Let middleware handle route protection.
+
+### Type Safety Pattern
+
+**Shared Types** (`lib/types/onboarding.ts`):
+- Single source of truth for onboarding data structure
+- Eliminates duplicate interface definitions
+- Numeric fields (edad, peso, estatura) are `number` type, not `string`
+- Arrays must be typed: `string[]` not `any[]`
+
+**Example - DO NOT create inline interfaces:**
+```typescript
+// ❌ Bad - duplicate interface
+interface StepProps {
+  data: { objetivo: string; edad: number; ... }
+}
+
+// ✅ Good - import shared type
+import { OnboardingStepProps } from '@/lib/types/onboarding'
+```
+
+### API Route Pattern
+
+**Onboarding Submission** (`app/api/profile/onboarding/route.ts`):
+- POST endpoint receives `UserOnboardingData`
+- Validates required fields (objetivo, edad, peso, estatura)
+- Uses server Supabase client to get authenticated user
+- Upserts to `user_profiles` table
+- Sets `onboarding_completed: true`
+- Returns JSON response with error handling
+
+## Styling Conventions
+
+**Color Palette:**
+- Primary: Green (#22C55E) and Emerald (#10B981)
+- Accent: Orange (#F97316) - used sparingly
+- Neutrals: Gray (NOT slate)
+- Gradients: `from-green-600 to-emerald-600` for headings
+
+**Glassmorphism Pattern:**
+```typescript
+className="bg-white/70 backdrop-blur-xl rounded-3xl border-2 border-gray-200/50"
+```
+
+**Selection States:**
+- Selected: `border-green-500 bg-green-50 shadow-lg shadow-green-500/20`
+- Unselected: `border-gray-200 bg-white hover:border-gray-300 hover:shadow-md`
+
+**Animations:**
+- Use Framer Motion for all animations
+- Stagger delays: `delay: index * 0.05` for list items
+- Entry animations: `initial={{ opacity: 0, y: 20 }}` → `animate={{ opacity: 1, y: 0 }}`
+
+## Common Pitfalls to Avoid
+
+1. **Using `redirect()` in Client Components** - Causes "not a function" errors
+2. **Using old `lib/supabaseClient.ts`** - File has been removed, use SSR clients
+3. **Mixing up Supabase client types** - Always match component type (client/server)
+4. **Creating duplicate type definitions** - Always import from `lib/types/`
+5. **Using slate colors** - Should be gray (palette consistency)
+6. **Storing numbers as strings** - Age, weight, height are `number` type
+7. **Missing type assertions on arrays** - Use `[] as string[]` not just `[]`
+8. **Auth checks in useEffect** - Let middleware handle route protection
+
 ## Key Considerations
 
-- **Authentication**: Use `useAuth()` hook in Client Components for consistent auth state management
-- **Supabase Clients**:
-  - Client Components: `import { createClient } from '@/lib/supabase/client'`
-  - Server Components/Actions: `import { createClient } from '@/lib/supabase/server'`
-  - **Do NOT use** `lib/supabaseClient.ts` (deprecated)
-- **Types**: Always import types from `lib/types/` instead of creating inline interfaces
-- **Redirects**: Use `redirect()` from `next/navigation` for server-side, `router.push()` for client-side
-- **Onboarding**: Data is saved to `user_profiles` table via `/api/profile/onboarding` endpoint
 - **Language**: Spanish is used throughout the UI
-- **Branding**: Varies between "NutriPlanner.ai" and "FMPlanner.ai" (package.json uses "fmplanning-frontend")
-
-## Documentation
-
-- `SUPABASE_SETUP.md` - Database setup instructions and SQL schema
-- `REFACTORING_SUMMARY.md` - Detailed refactoring changelog and improvements
+- **Branding**: Package name is "fmplanning-frontend" but app displays "NutriPlanner.ai"
+- **Database**: Onboarding saves to `user_profiles` table (not `profiles`)
+- **Form Library**: None - vanilla React state management with validation functions
+- **Next.js Version**: 16 with Turbopack (deprecation warning for "middleware" → "proxy" can be ignored)
