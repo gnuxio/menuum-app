@@ -33,14 +33,13 @@ export async function updateSession(request: NextRequest) {
 
     const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
                       request.nextUrl.pathname.startsWith('/register');
-    const isProtectedPage = request.nextUrl.pathname.startsWith('/dashboard') ||
-                           request.nextUrl.pathname.startsWith('/onboarding') ||
+    const isProtectedPage = request.nextUrl.pathname.startsWith('/onboarding') ||
                            request.nextUrl.pathname === '/';
 
     // Redirect authenticated users away from auth pages
     if (user && isAuthPage) {
         const url = request.nextUrl.clone();
-        url.pathname = '/dashboard';
+        url.pathname = '/';
         return NextResponse.redirect(url);
     }
 

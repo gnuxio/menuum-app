@@ -82,7 +82,7 @@ export default function Onboarding() {
                 throw new Error(result.error || 'Error al guardar el perfil');
             }
 
-            router.push("/dashboard");
+            router.push("/");
         } catch (error) {
             console.error("Error guardando onboarding:", error);
             setError(error instanceof Error ? error.message : 'Error desconocido al guardar');

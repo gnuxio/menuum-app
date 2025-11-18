@@ -15,9 +15,9 @@ export default function Sidebar() {
     };
 
     const menuItems = [
-        { icon: Home, label: 'Dashboard', href: '/dashboard' },
-        { icon: Calendar, label: 'Planes', href: '/dashboard/plans' },
-        { icon: User, label: 'Perfil', href: '/dashboard/profile' },
+        { icon: Home, label: 'Dashboard', href: '/' },
+        { icon: Calendar, label: 'Planes', href: '/plans' },
+        { icon: User, label: 'Perfil', href: '/profile' },
     ];
 
     return (
