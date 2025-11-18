@@ -19,11 +19,11 @@ export default function Step5Preferencias({ data, updateData }: OnboardingStepPr
                 <motion.h1
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent"
+                    className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent"
                 >
                     ¿Tienes un estilo de alimentación preferido?
                 </motion.h1>
-                <p className="text-slate-600 text-lg">
+                <p className="text-gray-600 text-lg">
                     Selecciona uno o continúa sin seleccionar
                 </p>
             </div>
@@ -41,13 +41,13 @@ export default function Step5Preferencias({ data, updateData }: OnboardingStepPr
                             onClick={() => updateData({ preferencia_alimenticia: pref.id })}
                             className={`relative p-6 rounded-2xl border-2 transition-all duration-300 ${
                                 isSelected
-                                    ? "border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/20"
-                                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+                                    ? "border-green-500 bg-green-50 shadow-lg shadow-green-500/20"
+                                    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                             }`}
                         >
                             <div className="text-center space-y-3">
                                 <div className="text-4xl">{pref.emoji}</div>
-                                <p className="text-sm font-semibold text-slate-900">
+                                <p className="text-sm font-semibold text-gray-900">
                                     {pref.label}
                                 </p>
                             </div>
@@ -55,7 +55,7 @@ export default function Step5Preferencias({ data, updateData }: OnboardingStepPr
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center"
+                                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"
                                 >
                                     <svg
                                         className="w-3.5 h-3.5 text-white"

@@ -9,8 +9,8 @@ const objetivos = [
         titulo: "Perder peso",
         emoji: "🔵",
         icon: TrendingDown,
-        color: "from-blue-400 to-blue-600",
-        bgColor: "bg-blue-50 hover:bg-blue-100 border-blue-200",
+        color: "from-green-400 to-emerald-600",
+        bgColor: "bg-green-50 hover:bg-green-100 border-green-200",
     },
     {
         id: "mantener_peso",
@@ -25,8 +25,8 @@ const objetivos = [
         titulo: "Ganar músculo",
         emoji: "🔴",
         icon: TrendingUp,
-        color: "from-rose-400 to-rose-600",
-        bgColor: "bg-rose-50 hover:bg-rose-100 border-rose-200",
+        color: "from-orange-400 to-orange-600",
+        bgColor: "bg-orange-50 hover:bg-orange-100 border-orange-200",
     },
 ];
 
@@ -37,11 +37,11 @@ export default function Step1Objetivo({ data, updateData }: OnboardingStepProps)
                 <motion.h1
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent"
+                    className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent"
                 >
                     ¿Cuál es tu objetivo?
                 </motion.h1>
-                <p className="text-slate-600 text-lg">
+                <p className="text-gray-600 text-lg">
                     Selecciona tu meta principal para personalizar tu plan
                 </p>
             </div>
@@ -58,10 +58,10 @@ export default function Step1Objetivo({ data, updateData }: OnboardingStepProps)
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.1 }}
                             onClick={() => updateData({ objetivo: objetivo.id })}
-                            className={`relative p-8 rounded-2xl border-2 transition-all duration-300 ${
+                            className={`relative p-8 rounded-3xl border-2 transition-all duration-300 backdrop-blur-xl ${
                                 isSelected
-                                    ? "border-blue-500 shadow-xl shadow-blue-500/20 scale-[1.02]"
-                                    : `${objetivo.bgColor} border-transparent`
+                                    ? "border-green-500 bg-white/70 shadow-2xl shadow-green-500/30 scale-[1.02]"
+                                    : `${objetivo.bgColor} bg-white/50 border-gray-200/50`
                             }`}
                         >
                             <div className="flex items-center gap-6">
@@ -71,7 +71,7 @@ export default function Step1Objetivo({ data, updateData }: OnboardingStepProps)
                                     <Icon className="w-10 h-10 text-white" />
                                 </div>
                                 <div className="flex-1 text-left">
-                                    <h3 className="text-2xl font-bold text-slate-900">
+                                    <h3 className="text-2xl font-bold text-gray-900">
                                         {objetivo.titulo}
                                     </h3>
                                 </div>
@@ -79,7 +79,7 @@ export default function Step1Objetivo({ data, updateData }: OnboardingStepProps)
                                     <motion.div
                                         initial={{ scale: 0 }}
                                         animate={{ scale: 1 }}
-                                        className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center"
+                                        className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/30"
                                     >
                                         <svg
                                             className="w-5 h-5 text-white"

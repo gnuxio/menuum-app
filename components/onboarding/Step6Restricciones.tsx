@@ -49,11 +49,11 @@ export default function Step6Restricciones({ data, updateData }: OnboardingStepP
                 <motion.h1
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent"
+                    className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent"
                 >
                     ¿Tienes alguna alergia o restricción?
                 </motion.h1>
-                <p className="text-slate-600 text-lg">
+                <p className="text-gray-600 text-lg">
                     Selecciona todas las que apliquen
                 </p>
             </div>
@@ -71,18 +71,18 @@ export default function Step6Restricciones({ data, updateData }: OnboardingStepP
                             onClick={() => toggleRestriccion(rest.id)}
                             className={`relative p-5 rounded-2xl border-2 transition-all duration-300 ${
                                 isSelected
-                                    ? "border-blue-500 bg-blue-50 shadow-lg shadow-blue-500/20"
-                                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+                                    ? "border-green-500 bg-green-50 shadow-lg shadow-green-500/20"
+                                    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                             }`}
                         >
-                            <p className="text-base font-semibold text-slate-900">
+                            <p className="text-base font-semibold text-gray-900">
                                 {rest.label}
                             </p>
                             {isSelected && (
                                 <motion.div
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
-                                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center"
+                                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"
                                 >
                                     <svg
                                         className="w-3.5 h-3.5 text-white"
@@ -106,9 +106,9 @@ export default function Step6Restricciones({ data, updateData }: OnboardingStepP
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="mt-8 bg-white rounded-2xl p-6 border-2 border-slate-200"
+                className="mt-8 bg-white/70 backdrop-blur-xl rounded-3xl p-6 border-2 border-gray-200/50 shadow-lg shadow-green-200/20"
             >
-                <label className="block text-sm font-medium text-slate-700 mb-3">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
                     Otras restricciones (opcional)
                 </label>
                 <Input
@@ -116,7 +116,7 @@ export default function Step6Restricciones({ data, updateData }: OnboardingStepP
                     value={otros}
                     onChange={(e) => setOtros(e.target.value)}
                     onBlur={handleOtrosBlur}
-                    className="h-12 text-base border-slate-300 focus:border-blue-500 rounded-xl"
+                    className="h-12 text-base border-gray-300 focus:border-green-500 focus:ring-green-500 rounded-xl transition-all"
                 />
             </motion.div>
         </div>
