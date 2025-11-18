@@ -40,12 +40,12 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                 />
 
                 {/* Main Content Area */}
-                <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 flex flex-col overflow-hidden w-full md:w-auto">
                     {/* Mobile Header */}
                     <MobileHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
 
                     {/* Main Content */}
-                    <main className="flex-1 bg-gray-50 overflow-auto pt-16 md:pt-0">
+                    <main className="flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden pt-16 md:pt-0 w-full">
                         {children}
                     </main>
                 </div>
