@@ -1,6 +1,24 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+interface StepProps {
+    data: {
+        objetivo: string;
+        edad: string;
+        peso: string;
+        estatura: string;
+        sexo: string;
+        nivel_actividad: string;
+        preferencia_alimenticia: string;
+        restricciones: string[];
+        comidas_al_dia: number;
+        nivel_cocina: string;
+        tiempo_disponible: string;
+        equipo_disponible: string[];
+    };
+    updateData: (partial: Partial<StepProps['data']>) => void;
+}
+
 const actividades = [
     {
         id: "sedentario",
@@ -34,7 +52,7 @@ const actividades = [
     },
 ];
 
-export default function Step4Actividad({ data, updateData }) {
+export default function Step4Actividad({ data, updateData }: StepProps) {
     return (
         <div className="space-y-8">
             <div className="text-center space-y-3">

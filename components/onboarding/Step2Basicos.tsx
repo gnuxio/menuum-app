@@ -4,7 +4,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Weight, Ruler } from "lucide-react";
 
-export default function Step2Basicos({ data, updateData }) {
+interface StepProps {
+    data: {
+        objetivo: string;
+        edad: string;
+        peso: string;
+        estatura: string;
+        sexo: string;
+        nivel_actividad: string;
+        preferencia_alimenticia: string;
+        restricciones: string[];
+        comidas_al_dia: number;
+        nivel_cocina: string;
+        tiempo_disponible: string;
+        equipo_disponible: string[];
+    };
+    updateData: (partial: Partial<StepProps['data']>) => void;
+}
+
+export default function Step2Basicos({ data, updateData }: StepProps) {
     return (
         <div className="space-y-8">
             <div className="text-center space-y-3">
@@ -36,7 +54,7 @@ export default function Step2Basicos({ data, updateData }) {
                         type="number"
                         placeholder="Ej: 28"
                         value={data.edad}
-                        onChange={(e) => updateData({ edad: parseFloat(e.target.value) })}
+                        onChange={(e) => updateData({ edad: e.target.value })}
                         className="h-14 text-lg border-2 border-slate-200 focus:border-blue-500 rounded-xl"
                     />
                 </motion.div>
@@ -56,7 +74,7 @@ export default function Step2Basicos({ data, updateData }) {
                         type="number"
                         placeholder="Ej: 70"
                         value={data.peso}
-                        onChange={(e) => updateData({ peso: parseFloat(e.target.value) })}
+                        onChange={(e) => updateData({ peso: e.target.value })}
                         className="h-14 text-lg border-2 border-slate-200 focus:border-blue-500 rounded-xl"
                     />
                 </motion.div>
@@ -76,7 +94,7 @@ export default function Step2Basicos({ data, updateData }) {
                         type="number"
                         placeholder="Ej: 170"
                         value={data.estatura}
-                        onChange={(e) => updateData({ estatura: parseFloat(e.target.value) })}
+                        onChange={(e) => updateData({ estatura: e.target.value })}
                         className="h-14 text-lg border-2 border-slate-200 focus:border-blue-500 rounded-xl"
                     />
                 </motion.div>

@@ -2,6 +2,24 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Scale, TrendingDown, TrendingUp } from "lucide-react";
 
+interface StepProps {
+    data: {
+        objetivo: string;
+        edad: string;
+        peso: string;
+        estatura: string;
+        sexo: string;
+        nivel_actividad: string;
+        preferencia_alimenticia: string;
+        restricciones: string[];
+        comidas_al_dia: number;
+        nivel_cocina: string;
+        tiempo_disponible: string;
+        equipo_disponible: string[];
+    };
+    updateData: (partial: Partial<StepProps['data']>) => void;
+}
+
 const objetivos = [
     {
         id: "perder_peso",
@@ -29,7 +47,7 @@ const objetivos = [
     },
 ];
 
-export default function Step1Objetivo({ data, updateData }) {
+export default function Step1Objetivo({ data, updateData }: StepProps) {
     return (
         <div className="space-y-8">
             <div className="text-center space-y-3">

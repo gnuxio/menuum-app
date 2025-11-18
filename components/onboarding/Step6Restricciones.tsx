@@ -2,6 +2,24 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 
+interface StepProps {
+    data: {
+        objetivo: string;
+        edad: string;
+        peso: string;
+        estatura: string;
+        sexo: string;
+        nivel_actividad: string;
+        preferencia_alimenticia: string;
+        restricciones: string[];
+        comidas_al_dia: number;
+        nivel_cocina: string;
+        tiempo_disponible: string;
+        equipo_disponible: string[];
+    };
+    updateData: (partial: Partial<StepProps['data']>) => void;
+}
+
 const restriccionesComunes = [
     { id: "ninguna", label: "Ninguna" },
     { id: "lactosa", label: "Lactosa" },
@@ -12,10 +30,10 @@ const restriccionesComunes = [
     { id: "soja", label: "Soja" },
 ];
 
-export default function Step6Restricciones({ data, updateData }) {
+export default function Step6Restricciones({ data, updateData }: StepProps) {
     const [otros, setOtros] = React.useState("");
 
-    const toggleRestriccion = (id) => {
+    const toggleRestriccion = (id: string) => {
         if (id === "ninguna") {
             updateData({ restricciones: ["ninguna"] });
             return;

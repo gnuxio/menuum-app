@@ -31,14 +31,14 @@ export default function Onboarding() {
         sexo: "",
         nivel_actividad: "",
         preferencia_alimenticia: "",
-        restricciones: [],
+        restricciones: [] as string[],
         comidas_al_dia: 4,
         nivel_cocina: "",
         tiempo_disponible: "",
-        equipo_disponible: [],
+        equipo_disponible: [] as string[],
     });
 
-    const updateUserData = (partial) =>
+    const updateUserData = (partial: Partial<typeof userData>) =>
         setUserData((prev) => ({ ...prev, ...partial }));
 
     const nextStep = () => currentStep < totalSteps && setCurrentStep((s) => s + 1);

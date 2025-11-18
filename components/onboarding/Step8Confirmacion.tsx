@@ -3,7 +3,26 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 
-export default function Step8Confirmacion({ data, onFinish, isLoading }) {
+interface Step8Props {
+    data: {
+        objetivo: string;
+        edad: string;
+        peso: string;
+        estatura: string;
+        sexo: string;
+        nivel_actividad: string;
+        preferencia_alimenticia: string;
+        restricciones: string[];
+        comidas_al_dia: number;
+        nivel_cocina: string;
+        tiempo_disponible: string;
+        equipo_disponible: string[];
+    };
+    onFinish: () => void;
+    isLoading: boolean;
+}
+
+export default function Step8Confirmacion({ data, onFinish, isLoading }: Step8Props) {
     return (
         <div className="space-y-8">
             <motion.div
