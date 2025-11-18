@@ -39,11 +39,11 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                 <motion.h1
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent"
+                    className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent"
                 >
                     Hábitos diarios
                 </motion.h1>
-                <p className="text-slate-600 text-lg">
+                <p className="text-gray-600 text-lg">
                     Últimos detalles para personalizar tus recetas
                 </p>
             </div>
@@ -53,10 +53,10 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white rounded-2xl p-6 border-2 border-slate-200"
+                    className="bg-white/70 backdrop-blur-xl rounded-3xl p-6 border-2 border-gray-200/50 shadow-lg shadow-green-200/20"
                 >
-                    <Label className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                        <UtensilsCrossed className="w-5 h-5 text-slate-400" />
+                    <Label className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <UtensilsCrossed className="w-5 h-5 text-gray-400" />
                         ¿Cuántas comidas al día prefieres?
                     </Label>
                     <div className="flex gap-3 mt-4">
@@ -66,8 +66,8 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                                 onClick={() => updateData({ comidas_al_dia: num })}
                                 className={`flex-1 py-4 rounded-xl border-2 font-semibold text-lg transition-all ${
                                     data.comidas_al_dia === num
-                                        ? "border-blue-500 bg-blue-50 text-blue-700"
-                                        : "border-slate-200 bg-white hover:border-slate-300"
+                                        ? "border-green-500 bg-green-50 text-green-700"
+                                        : "border-gray-300 bg-white hover:border-gray-400"
                                 }`}
                             >
                                 {num}
@@ -81,10 +81,10 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white rounded-2xl p-6 border-2 border-slate-200"
+                    className="bg-white/70 backdrop-blur-xl rounded-3xl p-6 border-2 border-gray-200/50 shadow-lg shadow-green-200/20"
                 >
-                    <Label className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                        <ChefHat className="w-5 h-5 text-slate-400" />
+                    <Label className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <ChefHat className="w-5 h-5 text-gray-400" />
                         Nivel de cocina
                     </Label>
                     <div className="grid grid-cols-2 gap-3 mt-4">
@@ -94,8 +94,8 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                                 onClick={() => updateData({ nivel_cocina: nivel.id })}
                                 className={`py-4 px-4 rounded-xl border-2 font-medium transition-all ${
                                     data.nivel_cocina === nivel.id
-                                        ? "border-blue-500 bg-blue-50 text-blue-700"
-                                        : "border-slate-200 bg-white hover:border-slate-300"
+                                        ? "border-green-500 bg-green-50 text-green-700"
+                                        : "border-gray-300 bg-white hover:border-gray-400"
                                 }`}
                             >
                                 {nivel.label}
@@ -109,10 +109,10 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="bg-white rounded-2xl p-6 border-2 border-slate-200"
+                    className="bg-white/70 backdrop-blur-xl rounded-3xl p-6 border-2 border-gray-200/50 shadow-lg shadow-green-200/20"
                 >
-                    <Label className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                        <Clock className="w-5 h-5 text-slate-400" />
+                    <Label className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-gray-400" />
                         Tiempo disponible por comida
                     </Label>
                     <div className="flex gap-3 mt-4">
@@ -122,8 +122,8 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                                 onClick={() => updateData({ tiempo_disponible: tiempo.id })}
                                 className={`flex-1 py-4 rounded-xl border-2 font-medium transition-all ${
                                     data.tiempo_disponible === tiempo.id
-                                        ? "border-blue-500 bg-blue-50 text-blue-700"
-                                        : "border-slate-200 bg-white hover:border-slate-300"
+                                        ? "border-green-500 bg-green-50 text-green-700"
+                                        : "border-gray-300 bg-white hover:border-gray-400"
                                 }`}
                             >
                                 {tiempo.label}
@@ -137,10 +137,10 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="bg-white rounded-2xl p-6 border-2 border-slate-200"
+                    className="bg-white/70 backdrop-blur-xl rounded-3xl p-6 border-2 border-gray-200/50 shadow-lg shadow-green-200/20"
                 >
-                    <Label className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                        <Microwave className="w-5 h-5 text-slate-400" />
+                    <Label className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <Microwave className="w-5 h-5 text-gray-400" />
                         Equipo disponible
                     </Label>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-4">
@@ -152,8 +152,8 @@ export default function Step7Habitos({ data, updateData }: OnboardingStepProps) 
                                     onClick={() => toggleEquipo(equipo.id)}
                                     className={`py-3 px-4 rounded-xl border-2 font-medium transition-all text-left ${
                                         isSelected
-                                            ? "border-blue-500 bg-blue-50 text-blue-700"
-                                            : "border-slate-200 bg-white hover:border-slate-300"
+                                            ? "border-green-500 bg-green-50 text-green-700"
+                                            : "border-gray-300 bg-white hover:border-gray-400"
                                     }`}
                                 >
                                     <span className="mr-2">{equipo.emoji}</span>

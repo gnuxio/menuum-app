@@ -12,15 +12,15 @@ export default function Step8Confirmacion({ data, onFinish, isLoading, error }: 
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center space-y-6"
             >
-                <div className="w-24 h-24 mx-auto bg-gradient-to-br from-cyan-500 to-blue-500 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/50">
+                <div className="w-24 h-24 mx-auto bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center shadow-2xl shadow-green-500/50">
                     <Sparkles className="w-12 h-12 text-white" />
                 </div>
 
                 <div className="space-y-3">
-                    <h1 className="text-5xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                    <h1 className="text-5xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                         ¡Listo!
                     </h1>
-                    <p className="text-xl text-slate-600 max-w-md mx-auto">
+                    <p className="text-xl text-gray-600 max-w-md mx-auto">
                         Con esta información generaremos tu menú semanal perfecto
                     </p>
                 </div>
@@ -30,32 +30,32 @@ export default function Step8Confirmacion({ data, onFinish, isLoading, error }: 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-3xl p-8 border-2 border-blue-100 mt-12"
+                className="bg-white/70 backdrop-blur-xl rounded-3xl p-8 border-2 border-gray-200/50 shadow-xl shadow-green-200/30 mt-12"
             >
-                <div className="space-y-4 text-sm text-slate-700">
-                    <div className="flex justify-between items-center pb-3 border-b border-slate-200">
+                <div className="space-y-4 text-sm text-gray-700">
+                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span className="font-medium">Objetivo</span>
-                        <span className="text-slate-900 font-semibold">
+                        <span className="text-gray-900 font-semibold">
               {data.objetivo === "perder_peso" && "Perder peso"}
                             {data.objetivo === "mantener_peso" && "Mantener peso"}
                             {data.objetivo === "ganar_musculo" && "Ganar músculo"}
             </span>
                     </div>
-                    <div className="flex justify-between items-center pb-3 border-b border-slate-200">
+                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span className="font-medium">Perfil</span>
-                        <span className="text-slate-900 font-semibold">
+                        <span className="text-gray-900 font-semibold">
               {data.edad} años • {data.peso} kg • {data.estatura} cm
             </span>
                     </div>
-                    <div className="flex justify-between items-center pb-3 border-b border-slate-200">
+                    <div className="flex justify-between items-center pb-3 border-b border-gray-200">
                         <span className="font-medium">Actividad</span>
-                        <span className="text-slate-900 font-semibold capitalize">
+                        <span className="text-gray-900 font-semibold capitalize">
               {data.nivel_actividad?.replace(/_/g, " ")}
             </span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="font-medium">Preferencia</span>
-                        <span className="text-slate-900 font-semibold capitalize">
+                        <span className="text-gray-900 font-semibold capitalize">
               {data.preferencia_alimenticia?.replace(/_/g, " ")}
             </span>
                     </div>
@@ -78,7 +78,7 @@ export default function Step8Confirmacion({ data, onFinish, isLoading, error }: 
                 <Button
                     onClick={onFinish}
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white py-8 text-lg font-semibold rounded-2xl shadow-2xl shadow-blue-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white py-8 text-lg font-semibold rounded-2xl shadow-2xl shadow-green-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isLoading ? (
                         <>
@@ -92,7 +92,7 @@ export default function Step8Confirmacion({ data, onFinish, isLoading, error }: 
                         </>
                     )}
                 </Button>
-                <p className="text-center text-sm text-slate-500 mt-4">
+                <p className="text-center text-sm text-gray-500 mt-4">
                     Tarda aproximadamente 30 segundos
                 </p>
             </motion.div>
