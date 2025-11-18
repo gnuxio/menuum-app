@@ -2,27 +2,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
+import { Step8Props } from "@/lib/types/onboarding";
 
-interface Step8Props {
-    data: {
-        objetivo: string;
-        edad: string;
-        peso: string;
-        estatura: string;
-        sexo: string;
-        nivel_actividad: string;
-        preferencia_alimenticia: string;
-        restricciones: string[];
-        comidas_al_dia: number;
-        nivel_cocina: string;
-        tiempo_disponible: string;
-        equipo_disponible: string[];
-    };
-    onFinish: () => void;
-    isLoading: boolean;
-}
-
-export default function Step8Confirmacion({ data, onFinish, isLoading }: Step8Props) {
+export default function Step8Confirmacion({ data, onFinish, isLoading, error }: Step8Props) {
     return (
         <div className="space-y-8">
             <motion.div
@@ -86,10 +68,17 @@ export default function Step8Confirmacion({ data, onFinish, isLoading }: Step8Pr
                 transition={{ delay: 0.3 }}
                 className="pt-6"
             >
+                {error && (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-4">
+                        <p className="text-red-700 text-sm font-medium text-center">
+                            {error}
+                        </p>
+                    </div>
+                )}
                 <Button
                     onClick={onFinish}
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white py-8 text-lg font-semibold rounded-2xl shadow-2xl shadow-blue-500/40 transition-all hover:scale-[1.02]"
+                    className="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white py-8 text-lg font-semibold rounded-2xl shadow-2xl shadow-blue-500/40 transition-all hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                     {isLoading ? (
                         <>

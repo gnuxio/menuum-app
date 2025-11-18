@@ -1,24 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Scale, TrendingDown, TrendingUp } from "lucide-react";
-
-interface StepProps {
-    data: {
-        objetivo: string;
-        edad: string;
-        peso: string;
-        estatura: string;
-        sexo: string;
-        nivel_actividad: string;
-        preferencia_alimenticia: string;
-        restricciones: string[];
-        comidas_al_dia: number;
-        nivel_cocina: string;
-        tiempo_disponible: string;
-        equipo_disponible: string[];
-    };
-    updateData: (partial: Partial<StepProps['data']>) => void;
-}
+import { OnboardingStepProps } from "@/lib/types/onboarding";
 
 const objetivos = [
     {
@@ -47,7 +30,7 @@ const objetivos = [
     },
 ];
 
-export default function Step1Objetivo({ data, updateData }: StepProps) {
+export default function Step1Objetivo({ data, updateData }: OnboardingStepProps) {
     return (
         <div className="space-y-8">
             <div className="text-center space-y-3">

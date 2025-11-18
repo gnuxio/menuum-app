@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,11 +11,18 @@ import { motion } from "framer-motion";
 import { ChefHat, Sparkles } from "lucide-react";
 
 export default function Register() {
+    const router = useRouter();
+    const supabase = createClient();
+
     useEffect(() => {
-        supabase.auth.getSession().then(({ data }) => {
-            if (data.session) redirect("/");
-        });
-    }, []);
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                router.replace("/");
+            }
+        };
+        checkSession();
+    }, [router, supabase]);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");

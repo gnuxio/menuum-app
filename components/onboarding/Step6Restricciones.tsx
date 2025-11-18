@@ -1,24 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
-
-interface StepProps {
-    data: {
-        objetivo: string;
-        edad: string;
-        peso: string;
-        estatura: string;
-        sexo: string;
-        nivel_actividad: string;
-        preferencia_alimenticia: string;
-        restricciones: string[];
-        comidas_al_dia: number;
-        nivel_cocina: string;
-        tiempo_disponible: string;
-        equipo_disponible: string[];
-    };
-    updateData: (partial: Partial<StepProps['data']>) => void;
-}
+import { OnboardingStepProps } from "@/lib/types/onboarding";
 
 const restriccionesComunes = [
     { id: "ninguna", label: "Ninguna" },
@@ -30,7 +13,7 @@ const restriccionesComunes = [
     { id: "soja", label: "Soja" },
 ];
 
-export default function Step6Restricciones({ data, updateData }: StepProps) {
+export default function Step6Restricciones({ data, updateData }: OnboardingStepProps) {
     const [otros, setOtros] = React.useState("");
 
     const toggleRestriccion = (id: string) => {

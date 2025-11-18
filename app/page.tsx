@@ -1,33 +1,35 @@
 'use client';
 
-import {useEffect} from "react";
-import {supabase} from "@/lib/supabaseClient";
-import {useRouter} from "next/navigation";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Home() {
+    const { user, loading } = useAuth();
     const router = useRouter();
 
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_OUT' || !session) {
-                router.push("/login");
-            }
-        });
+        if (!loading && !user) {
+            router.push('/login');
+        }
+    }, [user, loading, router]);
 
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                router.push("/login");
-            }
-        });
+    if (loading) {
+        return (
+            <main className="min-h-screen bg-[#FAFAF9] flex items-center justify-center">
+                <div className="text-slate-600">Cargando...</div>
+            </main>
+        );
+    }
 
-        return () => {
-            subscription.unsubscribe();
-        };
-    }, [router]);
+    if (!user) {
+        return null; // Evitar flash mientras redirige
+    }
 
     return (
         <main className="min-h-screen bg-[#FAFAF9]">
             <h1>Dashboard</h1>
+            <p>Bienvenido, {user.email}</p>
         </main>
     );
 }

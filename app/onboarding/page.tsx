@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { UserOnboardingData } from "@/lib/types/onboarding";
 
 import Step1Objetivo from "@/components/onboarding/Step1Objetivo";
 import Step2Basicos from "@/components/onboarding/Step2Basicos";
@@ -22,23 +23,24 @@ export default function Onboarding() {
 
     const [currentStep, setCurrentStep] = useState(1);
     const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const [userData, setUserData] = useState({
+    const [userData, setUserData] = useState<UserOnboardingData>({
         objetivo: "",
-        edad: "",
-        peso: "",
-        estatura: "",
+        edad: 0,
+        peso: 0,
+        estatura: 0,
         sexo: "",
         nivel_actividad: "",
         preferencia_alimenticia: "",
-        restricciones: [] as string[],
+        restricciones: [],
         comidas_al_dia: 4,
         nivel_cocina: "",
         tiempo_disponible: "",
-        equipo_disponible: [] as string[],
+        equipo_disponible: [],
     });
 
-    const updateUserData = (partial: Partial<typeof userData>) =>
+    const updateUserData = (partial: Partial<UserOnboardingData>) =>
         setUserData((prev) => ({ ...prev, ...partial }));
 
     const nextStep = () => currentStep < totalSteps && setCurrentStep((s) => s + 1);
@@ -64,9 +66,9 @@ export default function Onboarding() {
     const handleFinish = async () => {
         try {
             setIsSaving(true);
+            setError(null);
 
-            // 👉 Aquí llamas tu backend
-            await fetch("/api/profile/onboarding", {
+            const response = await fetch("/api/profile/onboarding", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -74,10 +76,16 @@ export default function Onboarding() {
                 body: JSON.stringify(userData),
             });
 
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.error || 'Error al guardar el perfil');
+            }
+
             router.push("/dashboard");
         } catch (error) {
             console.error("Error guardando onboarding:", error);
-        } finally {
+            setError(error instanceof Error ? error.message : 'Error desconocido al guardar');
             setIsSaving(false);
         }
     };
@@ -99,6 +107,7 @@ export default function Onboarding() {
                         data={userData}
                         isLoading={isSaving}
                         onFinish={handleFinish}
+                        error={error}
                     />
                 );
             default:

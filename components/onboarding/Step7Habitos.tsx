@@ -2,24 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Label } from "@/components/ui/label";
 import { UtensilsCrossed, Clock, ChefHat, Microwave } from "lucide-react";
-
-interface StepProps {
-    data: {
-        objetivo: string;
-        edad: string;
-        peso: string;
-        estatura: string;
-        sexo: string;
-        nivel_actividad: string;
-        preferencia_alimenticia: string;
-        restricciones: string[];
-        comidas_al_dia: number;
-        nivel_cocina: string;
-        tiempo_disponible: string;
-        equipo_disponible: string[];
-    };
-    updateData: (partial: Partial<StepProps['data']>) => void;
-}
+import { OnboardingStepProps } from "@/lib/types/onboarding";
 
 const comidasOpciones = [3, 4, 5];
 const nivelCocina = [
@@ -42,7 +25,7 @@ const equipoOpciones = [
     { id: "horno", label: "Horno", emoji: "🔥" },
 ];
 
-export default function Step7Habitos({ data, updateData }: StepProps) {
+export default function Step7Habitos({ data, updateData }: OnboardingStepProps) {
     const toggleEquipo = (id: string) => {
         const newEquipo = data.equipo_disponible.includes(id)
             ? data.equipo_disponible.filter(e => e !== id)

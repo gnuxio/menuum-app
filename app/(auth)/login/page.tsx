@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { redirect, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { ChefHat, Sparkles } from "lucide-react";
 import { AuthError } from "@supabase/supabase-js";
-import {AppRouterInstance} from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 // Tipos para la respuesta de Supabase
 type AuthResponse = {
@@ -22,29 +21,24 @@ type AuthResponse = {
 };
 
 export default function Login() {
-    const router: AppRouterInstance = useRouter();
+    const router = useRouter();
+    const supabase = createClient();
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
 
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event === 'SIGNED_IN' && session) {
-                router.push("/");
-            }
-        });
-
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        // Solo verificar sesión inicial, sin redirección automática
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
             if (session) {
-                redirect("/");
+                router.replace("/");
             }
-        });
-
-        return () => {
-            subscription.unsubscribe();
         };
-    }, []);
+
+        checkSession();
+    }, [router, supabase]);
 
     // Tipado para el evento del formulario
     async function handleLogin(e: React.FormEvent<HTMLFormElement>): Promise<void> {

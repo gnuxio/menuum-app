@@ -1,23 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-
-interface StepProps {
-    data: {
-        objetivo: string;
-        edad: string;
-        peso: string;
-        estatura: string;
-        sexo: string;
-        nivel_actividad: string;
-        preferencia_alimenticia: string;
-        restricciones: string[];
-        comidas_al_dia: number;
-        nivel_cocina: string;
-        tiempo_disponible: string;
-        equipo_disponible: string[];
-    };
-    updateData: (partial: Partial<StepProps['data']>) => void;
-}
+import { OnboardingStepProps } from "@/lib/types/onboarding";
 
 const preferencias = [
     { id: "omnivoro", label: "Omnívoro", emoji: "🍖" },
@@ -29,7 +12,7 @@ const preferencias = [
     { id: "sin_preferencia", label: "Sin preferencia", emoji: "✨" },
 ];
 
-export default function Step5Preferencias({ data, updateData }: StepProps) {
+export default function Step5Preferencias({ data, updateData }: OnboardingStepProps) {
     return (
         <div className="space-y-8">
             <div className="text-center space-y-3">
