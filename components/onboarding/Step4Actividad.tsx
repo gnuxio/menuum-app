@@ -65,7 +65,7 @@ export default function Step4Actividad({ data, updateData }: OnboardingStepProps
                             className={`relative p-6 rounded-2xl border-2 transition-all duration-300 text-left ${
                                 isSelected
                                     ? "border-green-500 bg-green-50 shadow-xl shadow-green-500/20"
-                                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+                                    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                             }`}
                         >
                             <div className="flex items-center gap-5">

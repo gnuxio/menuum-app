@@ -72,7 +72,7 @@ export default function Step6Restricciones({ data, updateData }: OnboardingStepP
                             className={`relative p-5 rounded-2xl border-2 transition-all duration-300 ${
                                 isSelected
                                     ? "border-green-500 bg-green-50 shadow-lg shadow-green-500/20"
-                                    : "border-slate-200 bg-white hover:border-slate-300 hover:shadow-md"
+                                    : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
                             }`}
                         >
                             <p className="text-base font-semibold text-gray-900">
