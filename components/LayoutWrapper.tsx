@@ -32,29 +32,26 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     return (
         <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
-            <div className="h-screen flex overflow-hidden">
-                {/* Sidebar */}
-                <Sidebar
-                    isMobileOpen={isMobileMenuOpen}
-                    onMobileClose={() => setIsMobileMenuOpen(false)}
-                />
+            {/* Sidebar */}
+            <Sidebar
+                isMobileOpen={isMobileMenuOpen}
+                onMobileClose={() => setIsMobileMenuOpen(false)}
+            />
 
-                {/* Main Content Area
-                    * min-w-0: Allows flex item to shrink below its content size, preventing overflow
-                    * This fixes the issue where flex items with wide content push beyond viewport
-                */}
-                <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-                    {/* Mobile Header */}
-                    <MobileHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
+            {/* Main Content Wrapper - Full width on mobile, with margin on desktop */}
+            <div
+                className={`
+                    min-h-screen transition-all duration-300
+                    ${isCollapsed ? 'md:ml-20' : 'md:ml-64'}
+                `}
+            >
+                {/* Mobile Header */}
+                <MobileHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-                    {/* Main Content
-                        * overflow-x-hidden: Prevents horizontal scroll within content area only
-                        * More targeted than global overflow-x: hidden on body
-                    */}
-                    <main className="flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden pt-16 md:pt-0">
-                        {children}
-                    </main>
-                </div>
+                {/* Main Content */}
+                <main className="bg-gray-50 min-h-screen pt-16 md:pt-0">
+                    {children}
+                </main>
             </div>
         </SidebarContext.Provider>
     );
