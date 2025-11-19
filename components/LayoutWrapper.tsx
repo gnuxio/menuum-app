@@ -39,13 +39,19 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
                     onMobileClose={() => setIsMobileMenuOpen(false)}
                 />
 
-                {/* Main Content Area */}
-                <div className="flex-1 flex flex-col overflow-hidden w-full md:w-auto">
+                {/* Main Content Area
+                    * min-w-0: Allows flex item to shrink below its content size, preventing overflow
+                    * This fixes the issue where flex items with wide content push beyond viewport
+                */}
+                <div className="flex-1 flex flex-col overflow-hidden min-w-0">
                     {/* Mobile Header */}
                     <MobileHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-                    {/* Main Content */}
-                    <main className="flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden pt-16 md:pt-0 w-full">
+                    {/* Main Content
+                        * overflow-x-hidden: Prevents horizontal scroll within content area only
+                        * More targeted than global overflow-x: hidden on body
+                    */}
+                    <main className="flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden pt-16 md:pt-0">
                         {children}
                     </main>
                 </div>
