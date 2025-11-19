@@ -23,7 +23,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
 
     const handleNavigation = (href: string) => {
         router.push(href);
-        onMobileClose(); // Cerrar sidebar en mobile al navegar
+        onMobileClose();
     };
 
     const menuItems = [
@@ -42,18 +42,21 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                     aria-label="Cerrar menú"
                 />
             )}
-
-            {/* Sidebar */}
-            <aside
-                className={`
-                    ${isCollapsed ? 'w-20' : 'w-64'}
-                    bg-white border-r border-gray-200 flex flex-col transition-all duration-300 relative
-
-                    /* Mobile: Drawer desde la izquierda */
-                    fixed md:static inset-y-0 left-0 z-50
-                    ${isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-                `}
-            >
+{/* Sidebar */}
+<aside
+    className={`
+        bg-white border-r border-gray-200 flex flex-col transition-all duration-300
+        fixed inset-y-0 left-0 z-50 h-screen
+        
+        /* Mobile: drawer overlay con ancho fijo */
+        w-64
+        ${isMobileOpen ? 'translate-x-0' : '-translate-x-full'}
+        
+        /* Desktop: siempre visible, ancho variable */
+        md:translate-x-0
+        ${isCollapsed ? 'md:w-20' : 'md:w-64'}
+    `}
+>
                 {/* Toggle Button - Solo en desktop */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}

@@ -115,7 +115,18 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Prevent horizontal scroll on mobile by constraining width to viewport
+   * Using max-width instead of overflow-x: hidden to avoid hiding legitimate content
+   * (e.g., tooltips, dropdowns, charts that extend beyond viewport)
+   */
+  html {
+    width: 100%;
+    max-width: 100vw;
+  }
   body {
     @apply bg-background text-foreground;
+    width: 100%;
+    max-width: 100vw;
+    position: relative;
   }
 }

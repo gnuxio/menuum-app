@@ -32,23 +32,26 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
 
     return (
         <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
-            <div className="h-screen flex overflow-hidden">
-                {/* Sidebar */}
-                <Sidebar
-                    isMobileOpen={isMobileMenuOpen}
-                    onMobileClose={() => setIsMobileMenuOpen(false)}
-                />
+            {/* Sidebar */}
+            <Sidebar
+                isMobileOpen={isMobileMenuOpen}
+                onMobileClose={() => setIsMobileMenuOpen(false)}
+            />
 
-                {/* Main Content Area */}
-                <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Mobile Header */}
-                    <MobileHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
+            {/* Main Content Wrapper - Full width on mobile, with margin on desktop */}
+            <div
+                className={`transition-all duration-300 ${isCollapsed
+                    ? 'md:ml-20'
+                    : 'md:ml-64'}
+                `}
+            >
+                {/* Mobile Header */}
+                <MobileHeader onMenuClick={() => setIsMobileMenuOpen(true)} />
 
-                    {/* Main Content */}
-                    <main className="flex-1 bg-gray-50 overflow-auto pt-16 md:pt-0">
-                        {children}
-                    </main>
-                </div>
+                {/* Main Content */}
+                <main className="bg-gray-50 min-h-screen pt-16 md:pt-0">
+                    {children}
+                </main>
             </div>
         </SidebarContext.Provider>
     );
