@@ -72,15 +72,13 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
 
                 {/* Header */}
                 <div className="p-6 border-b border-gray-200">
-                    {isCollapsed ? (
-                        <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent text-center">
-                            N
-                        </div>
-                    ) : (
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                            NutriPlanner.ai
-                        </h1>
-                    )}
+                    <h1 className={`text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent ${isCollapsed ? 'hidden md:block md:text-center' : ''}`}>
+                        {isCollapsed ? 'N' : 'NutriPlanner.ai'}
+                    </h1>
+                    {/* En mobile siempre mostrar el nombre completo */}
+                    <h1 className="md:hidden text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                        NutriPlanner.ai
+                    </h1>
                 </div>
 
                 {/* Navigation */}
@@ -94,7 +92,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                                 <li key={item.href}>
                                     <button
                                         onClick={() => handleNavigation(item.href)}
-                                        className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg transition-all ${
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isCollapsed ? 'md:justify-center' : ''} ${
                                             isActive
                                                 ? 'bg-green-50 text-green-600 font-semibold'
                                                 : 'text-gray-600 hover:bg-gray-50'
@@ -102,7 +100,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                                         title={isCollapsed ? item.label : undefined}
                                     >
                                         <Icon className="w-5 h-5 flex-shrink-0" />
-                                        {!isCollapsed && <span>{item.label}</span>}
+                                        <span className={isCollapsed ? 'md:hidden' : ''}>{item.label}</span>
                                     </button>
                                 </li>
                             );
@@ -114,11 +112,11 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                 <div className="p-4 border-t border-gray-200">
                     <button
                         onClick={handleSignOut}
-                        className={`w-full flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all ${isCollapsed ? 'md:justify-center' : ''}`}
                         title={isCollapsed ? 'Cerrar sesión' : undefined}
                     >
                         <LogOut className="w-5 h-5 flex-shrink-0" />
-                        {!isCollapsed && <span>Cerrar sesión</span>}
+                        <span className={isCollapsed ? 'md:hidden' : ''}>Cerrar sesión</span>
                     </button>
                 </div>
             </aside>
