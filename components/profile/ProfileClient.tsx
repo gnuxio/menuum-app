@@ -1,13 +1,13 @@
 'use client';
 
 import { User } from '@supabase/supabase-js';
-import { UserOnboardingData } from '@/lib/types/onboarding';
+import { UserProfile } from '@/lib/types/onboarding';
 import { motion } from 'framer-motion';
 import { User as UserIcon, Mail, Activity, Target, Utensils, Clock, ChefHat } from 'lucide-react';
 
 interface ProfileClientProps {
     user: User;
-    profile: UserOnboardingData & { user_id: string } | null;
+    profile: UserProfile | null;
 }
 
 export default function ProfileClient({ user, profile }: ProfileClientProps) {

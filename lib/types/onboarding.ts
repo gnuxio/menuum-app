@@ -18,23 +18,14 @@ export interface UserOnboardingData {
 }
 
 /**
- * Tipo para la actualización del perfil de usuario
- * Todos los campos son opcionales para permitir actualizaciones parciales
+ * Tipo para el perfil completo del usuario almacenado en la base de datos
+ * Extiende UserOnboardingData con campos adicionales de la tabla user_profiles
  */
-export interface UserProfileUpdate {
-    objetivo?: string;
-    edad?: number;
-    peso?: number;
-    estatura?: number;
-    sexo?: string;
-    nivel_actividad?: string;
-    preferencia_alimenticia?: string;
-    restricciones?: string[];
-    comidas_al_dia?: number;
-    nivel_cocina?: string;
-    tiempo_disponible?: string;
-    equipo_disponible?: string[];
+export interface UserProfile extends UserOnboardingData {
+    user_id: string;
+    created_at?: string;
     updated_at?: string;
+    onboarding_completed?: boolean;
 }
 
 export interface OnboardingStepProps {
