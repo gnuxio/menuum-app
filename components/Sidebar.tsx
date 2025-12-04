@@ -2,7 +2,8 @@
 
 import { Home, Calendar, User, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import { signOut } from 'aws-amplify/auth';
+import '@/lib/cognito/client';
 import { useSidebarContext } from "./LayoutWrapper";
 
 interface SidebarProps {
@@ -13,12 +14,15 @@ interface SidebarProps {
 export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
-    const supabase = createClient();
     const { isCollapsed, setIsCollapsed } = useSidebarContext();
 
     const handleSignOut = async () => {
-        await supabase.auth.signOut();
-        router.push('/login');
+        try {
+            await signOut();
+            router.push('/login');
+        } catch (error) {
+            console.error('Error signing out:', error);
+        }
     };
 
     const handleNavigation = (href: string) => {

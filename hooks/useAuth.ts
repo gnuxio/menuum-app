@@ -1,55 +1,85 @@
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
-import type { User } from '@supabase/supabase-js';
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { getCurrentUser, signOut as amplifySignOut, fetchAuthSession } from 'aws-amplify/auth'
+import '@/lib/cognito/client' // Configurar Amplify
+
+export interface CognitoUserAttributes {
+  sub: string
+  email?: string
+  email_verified?: boolean
+  // Añadir más atributos según necesites
+}
+
+export interface AuthUser {
+  userId: string
+  username: string
+  attributes: CognitoUserAttributes
+}
 
 interface UseAuthReturn {
-    user: User | null;
-    loading: boolean;
-    signOut: () => Promise<void>;
+  user: AuthUser | null
+  loading: boolean
+  signOut: () => Promise<void>
 }
 
 /**
- * Hook personalizado para manejar la autenticación
+ * Hook personalizado para manejar la autenticación con AWS Cognito
  * Proporciona el usuario actual, estado de carga y función de logout
  */
 export function useAuth(): UseAuthReturn {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState(true);
-    const router = useRouter();
-    const supabase = createClient();
+  const [user, setUser] = useState<AuthUser | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
-    useEffect(() => {
-        // Obtener sesión inicial
-        const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
-            setLoading(false);
-        };
+  useEffect(() => {
+    // Obtener usuario actual
+    const getUser = async () => {
+      try {
+        const currentUser = await getCurrentUser()
+        const session = await fetchAuthSession()
 
-        getSession();
+        const authUser: AuthUser = {
+          userId: currentUser.userId,
+          username: currentUser.username,
+          attributes: (currentUser.signInDetails?.loginId
+            ? {
+                sub: currentUser.userId,
+                email: currentUser.signInDetails.loginId,
+              }
+            : { sub: currentUser.userId }) as CognitoUserAttributes,
+        }
 
-        // Escuchar cambios de autenticación
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
-                setUser(session?.user ?? null);
-                setLoading(false);
-            }
-        );
+        setUser(authUser)
+      } catch (error) {
+        // Usuario no autenticado
+        setUser(null)
+      } finally {
+        setLoading(false)
+      }
+    }
 
-        return () => {
-            subscription.unsubscribe();
-        };
-    }, [supabase]);
+    getUser()
 
-    const signOut = async () => {
-        await supabase.auth.signOut();
-        router.push('/login');
-    };
+    // Cognito no tiene onAuthStateChange built-in
+    // Podrías implementar polling o usar eventos personalizados si necesitas
+    // Por ahora, el estado se actualiza al montar el componente
+  }, [])
 
-    return {
-        user,
-        loading,
-        signOut,
-    };
+  const handleSignOut = async () => {
+    try {
+      await amplifySignOut()
+      setUser(null)
+      router.push('/login')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
+
+  return {
+    user,
+    loading,
+    signOut: handleSignOut,
+  }
 }

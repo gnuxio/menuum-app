@@ -2,7 +2,8 @@
  * API service for profile operations with the Go backend
  */
 
-import { createClient } from "@/lib/supabase/client";
+import { fetchAuthSession } from 'aws-amplify/auth';
+import '@/lib/cognito/client';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.menuum.com';
 
@@ -33,17 +34,29 @@ export interface ProfileResponse {
 }
 
 /**
- * Get the Supabase JWT token from the current session
+ * Get the Cognito ID token from the current session
+ *
+ * IMPORTANTE: El backend Go necesitará actualizar su validación de JWT para:
+ * 1. Cambiar el JWKS endpoint a Cognito:
+ *    https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json
+ * 2. Validar el issuer de Cognito:
+ *    https://cognito-idp.{region}.amazonaws.com/{userPoolId}
+ * 3. Extraer el user ID desde el claim "sub" en lugar de "user_id"
  */
 async function getAuthToken(): Promise<string> {
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.getSession();
+    try {
+        const session = await fetchAuthSession();
 
-    if (error || !data.session) {
+        if (!session.tokens?.idToken) {
+            throw new Error('No hay sesión activa. Por favor inicia sesión nuevamente.');
+        }
+
+        // Retornamos el idToken (no el accessToken)
+        // El idToken contiene los claims del usuario
+        return session.tokens.idToken.toString();
+    } catch (error) {
         throw new Error('No hay sesión activa. Por favor inicia sesión nuevamente.');
     }
-
-    return data.session.access_token;
 }
 
 /**

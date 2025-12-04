@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { signUp, getCurrentUser, autoSignIn } from "aws-amplify/auth";
+import '@/lib/cognito/client'; // Configurar Amplify
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,17 +13,19 @@ import { ChefHat, Sparkles } from "lucide-react";
 
 export default function Register() {
     const router = useRouter();
-    const supabase = createClient();
 
     useEffect(() => {
         const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
+            try {
+                await getCurrentUser();
+                // Si llega aquí, el usuario está autenticado
                 router.replace("/");
+            } catch {
+                // Usuario no autenticado, permanece en register
             }
         };
         checkSession();
-    }, [router, supabase]);
+    }, [router]);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -36,31 +39,62 @@ export default function Register() {
         setError("");
         setMessage("");
 
-        const { data, error } = await supabase.auth.signUp({
-            email,
-            password,
-        });
-
-        if (error) {
-            setLoading(false);
-            setError(error.message);
-            return;
-        }
-
-        // Create profile entry with user ID
-        if (data.user) {
-            const { error: profileError } = await supabase.from('profiles').insert({
-                id: data.user.id,
+        try {
+            const { isSignUpComplete, userId, nextStep } = await signUp({
+                username: email,
+                password,
+                options: {
+                    userAttributes: {
+                        email,
+                    },
+                    autoSignIn: true, // Habilita auto sign-in después del registro
+                },
             });
 
-            if (profileError) {
-                console.error('Error creating profile:', profileError);
-                // Continue anyway, profile can be created later
-            }
-        }
+            // Si el User Pool está configurado sin confirmación de email
+            // el usuario será creado inmediatamente
+            if (isSignUpComplete) {
+                setLoading(false);
+                setMessage("Cuenta creada correctamente. Redirigiendo...");
 
-        setLoading(false);
-        setMessage("Cuenta creada correctamente. Revisa tu correo para confirmar tu registro.");
+                // Auto sign-in después de registro exitoso
+                try {
+                    await autoSignIn();
+                    setTimeout(() => {
+                        router.push("/onboarding");
+                    }, 1000);
+                } catch (autoSignInError) {
+                    // Si auto sign-in falla, redirigir a login
+                    setTimeout(() => {
+                        router.push("/login");
+                    }, 1000);
+                }
+            } else if (nextStep.signUpStep === 'CONFIRM_SIGN_UP') {
+                // Si requiere confirmación (configuración futura)
+                setLoading(false);
+                setMessage("Cuenta creada. Por favor, revisa tu correo para confirmar tu registro.");
+            } else {
+                setLoading(false);
+                setMessage("Cuenta creada correctamente.");
+            }
+        } catch (err: any) {
+            setLoading(false);
+
+            // Manejo de errores específicos de Cognito
+            let errorMessage = "Ha ocurrido un error inesperado. Por favor, intenta nuevamente.";
+
+            if (err.name === 'UsernameExistsException') {
+                errorMessage = "Ya existe una cuenta con este correo.";
+            } else if (err.name === 'InvalidPasswordException') {
+                errorMessage = "La contraseña no cumple con los requisitos de seguridad.";
+            } else if (err.name === 'InvalidParameterException') {
+                errorMessage = "El correo electrónico no es válido.";
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+
+            setError(errorMessage);
+        }
     }
 
     return (

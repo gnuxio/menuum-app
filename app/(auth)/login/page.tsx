@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { signIn, getCurrentUser } from "aws-amplify/auth";
+import '@/lib/cognito/client'; // Configurar Amplify
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,36 +10,28 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { ChefHat, Sparkles } from "lucide-react";
-import { AuthError } from "@supabase/supabase-js";
-
-// Tipos para la respuesta de Supabase
-type AuthResponse = {
-    data: {
-        user: any;
-        session: any;
-    } | null;
-    error: AuthError | null;
-};
 
 export default function Login() {
     const router = useRouter();
-    const supabase = createClient();
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
 
     useEffect(() => {
-        // Solo verificar sesión inicial, sin redirección automática
+        // Verificar sesión inicial
         const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
+            try {
+                await getCurrentUser();
+                // Si llega aquí, el usuario está autenticado
                 router.replace("/");
+            } catch {
+                // Usuario no autenticado, permanece en login
             }
         };
 
         checkSession();
-    }, [router, supabase]);
+    }, [router]);
 
     // Tipado para el evento del formulario
     async function handleLogin(e: React.FormEvent<HTMLFormElement>): Promise<void> {
@@ -47,27 +40,33 @@ export default function Login() {
         setError("");
 
         try {
-            // Tipado para las credenciales de autenticación
-            const { data, error: signInError }: AuthResponse = await supabase.auth.signInWithPassword({
-                email: email.trim(),
+            const { isSignedIn } = await signIn({
+                username: email.trim(),
                 password: password
             });
 
             setLoading(false);
 
-            if (signInError) {
-                // Tipado específico para errores de Supabase
-                setError(signInError.message);
-                return;
-            }
-
-            if (data?.user && data?.session) {
+            if (isSignedIn) {
                 router.push("/");
             }
-        } catch (err) {
-            // Manejo de errores no tipados
+        } catch (err: any) {
             setLoading(false);
-            setError("Ha ocurrido un error inesperado. Por favor, intenta nuevamente.");
+
+            // Manejo de errores específicos de Cognito
+            let errorMessage = "Ha ocurrido un error inesperado. Por favor, intenta nuevamente.";
+
+            if (err.name === 'NotAuthorizedException') {
+                errorMessage = "Correo o contraseña incorrectos.";
+            } else if (err.name === 'UserNotFoundException') {
+                errorMessage = "No existe una cuenta con este correo.";
+            } else if (err.name === 'UserNotConfirmedException') {
+                errorMessage = "Por favor, confirma tu cuenta antes de iniciar sesión.";
+            } else if (err.message) {
+                errorMessage = err.message;
+            }
+
+            setError(errorMessage);
         }
     }
 

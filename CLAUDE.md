@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Menuum is a Next.js 16 application for intelligent meal planning. The app uses Supabase for authentication and backend services, with a multi-step onboarding flow to collect user nutrition preferences and goals.
+Menuum is a Next.js 16 application for intelligent meal planning. The app uses AWS Cognito for authentication and AWS DynamoDB for data storage, with a multi-step onboarding flow to collect user nutrition preferences and goals.
 
 **Live at:** https://app.menuum.com/
 
@@ -41,7 +41,8 @@ npm run lint
 - **Styling:** Tailwind CSS v4 with custom theme
 - **Animations:** Framer Motion
 - **Icons:** Lucide React
-- **Auth/Backend:** Supabase
+- **Auth:** AWS Cognito (via AWS Amplify v6)
+- **Database:** AWS DynamoDB
 - **Deployment:** Docker (standalone mode)
 
 ## Architecture
@@ -66,24 +67,29 @@ npm run lint
   - `useAuth.ts` - Authentication hook (user state, loading, signOut)
 
 - `lib/` - Utilities and services
-  - `supabase/` - Supabase SSR clients
-    - `client.ts` - Browser client for Client Components
-    - `server.ts` - Server client for Server Components/Actions
+  - `cognito/` - AWS Cognito authentication clients
+    - `client.ts` - Browser client configuration (AWS Amplify)
+    - `server.ts` - Server-side JWT validation with jose
     - `proxy.ts` - Proxy helper for session management and route protection
+  - `dynamodb/` - AWS DynamoDB helpers
+    - `client.ts` - DynamoDB operations for user_profiles table
   - `types/` - TypeScript type definitions
     - `onboarding.ts` - Shared types for onboarding flow
   - `utils.ts` - Utility functions (cn for class merging)
+  - `amplify-config.ts` - AWS Amplify configuration
 
 - `middleware.ts` - Route protection and session management (edge runtime)
 
 ### Authentication Flow
 
-1. Root page (`app/page.tsx`) uses `useAuth()` hook for authentication state
+1. Root page (`app/page.tsx`) verifies authentication server-side using Cognito JWT validation
 2. Unauthenticated users redirect to `/login`
 3. After login, authenticated users see dashboard
-4. Auth state changes are monitored via the `useAuth` hook
-5. Use `createClient()` from `@/lib/supabase/client` in Client Components
-6. Use `createClient()` from `@/lib/supabase/server` in Server Components/Actions
+4. Auth state in Client Components is managed via the `useAuth` hook
+5. Cognito stores JWT tokens in browser cookies (managed by AWS Amplify)
+6. Server Components validate JWT tokens using jose library against Cognito JWKS
+7. Use AWS Amplify auth functions (`signIn`, `signUp`, `signOut`, `getCurrentUser`) in Client Components
+8. Use `getCurrentUser()` from `@/lib/cognito/server` in Server Components/Actions
 
 ### Onboarding Flow
 
@@ -98,7 +104,7 @@ The onboarding process (`app/onboarding/page.tsx`) consists of 8 steps that coll
 7. **Step7Habitos** - Cooking habits (skill level, time, equipment array)
 8. **Step8Confirmacion** - Review and submit with error handling
 
-All user data is stored in a single state object (`UserOnboardingData` type from `lib/types/onboarding.ts`) and validated per-step. On completion, data is POSTed to `/api/profile/onboarding` endpoint which saves to the `user_profiles` table in Supabase.
+All user data is stored in a single state object (`UserOnboardingData` type from `lib/types/onboarding.ts`) and validated per-step. On completion, data is sent to the backend Go API which saves to the `user_profiles` table in DynamoDB.
 
 **Type Safety**: All components use shared types from `lib/types/onboarding.ts`:
 - `UserOnboardingData` - Main data structure
@@ -126,10 +132,24 @@ Configured in `tsconfig.json`:
 ## Environment Variables
 
 Required in `.env.local`:
+```bash
+# AWS Cognito Configuration
+NEXT_PUBLIC_COGNITO_REGION=us-east-1
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=us-east-1_xxxxxxxxx
+NEXT_PUBLIC_COGNITO_CLIENT_ID=xxxxxxxxxxxxxxxxxxxx
+NEXT_PUBLIC_COOKIE_DOMAIN=localhost
+
+# AWS DynamoDB Configuration
+AWS_REGION=us-east-1
+AWS_ACCESS_KEY_ID=your-access-key-id
+AWS_SECRET_ACCESS_KEY=your-secret-access-key
+DYNAMODB_USER_PROFILES_TABLE=user_profiles
+
+# Backend API
+NEXT_PUBLIC_API_URL=https://api.menuum.com
 ```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-```
+
+See `AWS_SETUP.md` for detailed setup instructions.
 
 ## Docker Deployment
 
@@ -165,57 +185,63 @@ The project includes a multi-stage Dockerfile optimized for Next.js standalone o
 
 **Server Components (default):**
 - Use for pages that need auth verification before rendering
-- Example: `app/dashboard/page.tsx` - checks session server-side before rendering
+- Example: `app/page.tsx` - checks JWT token server-side before rendering
 - Can use `redirect()` directly in async component body
-- Use `createClient()` from `@/lib/supabase/server`
+- Use `getCurrentUser()` from `@/lib/cognito/server`
 
 **Client Components (use 'use client'):**
 - Required for interactivity (onClick, useState, useEffect)
 - All onboarding steps are Client Components (need form interactions)
 - Auth pages (login/register) are Client Components (forms + navigation)
 - Use `useAuth()` hook for auth state in Client Components
-- Use `createClient()` from `@/lib/supabase/client`
+- Use AWS Amplify auth functions: `signIn()`, `signUp()`, `signOut()`, `getCurrentUser()`
+- Import `@/lib/cognito/client` to auto-configure Amplify
 - Use `router.push()` or `router.replace()` for navigation (NOT `redirect()`)
 
-### Supabase SSR Architecture
+### AWS Cognito SSR Architecture
 
-**Three Client Types (IMPORTANT - use correct one):**
+**Three Authentication Layers (IMPORTANT - use correct one):**
 
-1. **Browser Client** (`lib/supabase/client.ts`):
+1. **Browser Client** (`lib/cognito/client.ts`):
    ```typescript
-   import { createClient } from '@/lib/supabase/client'
+   import '@/lib/cognito/client' // Auto-configures Amplify
+   import { signIn, signUp, signOut, getCurrentUser } from 'aws-amplify/auth'
    ```
    - For Client Components only
+   - Configures AWS Amplify with Cognito settings
    - Handles cookies automatically in browser
-   - Used in: login, register, useAuth hook
+   - Used in: login, register, useAuth hook, Sidebar
 
-2. **Server Client** (`lib/supabase/server.ts`):
+2. **Server Client** (`lib/cognito/server.ts`):
    ```typescript
-   import { createClient } from '@/lib/supabase/server'
+   import { getCurrentUser, getIdToken } from '@/lib/cognito/server'
    ```
    - For Server Components, Server Actions, Route Handlers
-   - Async function that returns client
-   - Manages cookies via Next.js `cookies()` API
-   - Used in: dashboard, API routes
+   - Validates JWT tokens using jose library against Cognito JWKS
+   - Extracts user information from decoded token claims
+   - Returns `CognitoUser` object or `null`
+   - Used in: dashboard (app/page.tsx), protected pages
 
-3. **Proxy Client** (`lib/supabase/proxy.ts`):
+3. **Proxy Client** (`lib/cognito/proxy.ts`):
    ```typescript
-   import { updateSession } from '@/lib/supabase/proxy'
+   import { updateSession } from '@/lib/cognito/proxy'
    ```
    - **Do NOT import directly** - used only by `proxy.ts`
-   - Handles session refresh and route protection
-   - Returns modified NextResponse with updated cookies
+   - Validates JWT tokens from cookies on each request
+   - Handles route protection and redirects
+   - Returns modified NextResponse
 
 ### Route Protection Pattern
 
 **Proxy** (`proxy.ts`):
 - Runs on ALL requests (see config matcher)
-- Calls `updateSession()` which:
-  1. Refreshes Supabase session automatically
+- Calls `updateSession()` from `lib/cognito/proxy.ts` which:
+  1. Validates JWT token from cookies using Cognito JWKS
   2. Redirects unauthenticated users from protected pages to `/login`
   3. Redirects authenticated users from auth pages to `/dashboard`
 - Protected routes: `/dashboard`, `/onboarding`
 - Public routes: `/login`, `/register`
+- Token validation happens on every request for protected routes
 
 **Important**: Do NOT add auth checks in `useEffect` with `redirect()` - this creates infinite loops. Let proxy handle route protection.
 
@@ -238,15 +264,20 @@ interface StepProps {
 import { OnboardingStepProps } from '@/lib/types/onboarding'
 ```
 
-### API Route Pattern
+### API Integration Pattern
 
-**Onboarding Submission** (`app/api/profile/onboarding/route.ts`):
-- POST endpoint receives `UserOnboardingData`
-- Validates required fields (objetivo, edad, peso, estatura)
-- Uses server Supabase client to get authenticated user
-- Upserts to `user_profiles` table
-- Sets `onboarding_completed: true`
-- Returns JSON response with error handling
+**Profile API** (`lib/api/profile.ts`):
+- Communicates with Go backend at `NEXT_PUBLIC_API_URL`
+- Uses `fetchAuthSession()` from AWS Amplify to get Cognito ID token
+- Sends JWT token in `Authorization: Bearer {token}` header
+- Backend validates JWT against Cognito JWKS
+- Backend extracts user ID from token `sub` claim
+- Backend saves data to DynamoDB `user_profiles` table
+
+**IMPORTANT**: Backend Go API must validate Cognito JWT tokens:
+- JWKS URL: `https://cognito-idp.{region}.amazonaws.com/{userPoolId}/.well-known/jwks.json`
+- Issuer: `https://cognito-idp.{region}.amazonaws.com/{userPoolId}`
+- User ID claim: `sub` (not `user_id`)
 
 ## Styling Conventions
 
@@ -273,20 +304,24 @@ className="bg-white/70 backdrop-blur-xl rounded-3xl border-2 border-gray-200/50"
 ## Common Pitfalls to Avoid
 
 1. **Using `redirect()` in Client Components** - Causes "not a function" errors
-2. **Using old `lib/supabaseClient.ts`** - File has been removed, use SSR clients
-3. **Mixing up Supabase client types** - Always match component type (client/server)
+2. **Forgetting to import `@/lib/cognito/client`** - Required in Client Components using auth
+3. **Mixing up auth contexts** - Use Amplify functions in Client, `getCurrentUser()` in Server
 4. **Creating duplicate type definitions** - Always import from `lib/types/`
 5. **Using slate colors** - Should be gray (palette consistency)
 6. **Storing numbers as strings** - Age, weight, height are `number` type
 7. **Missing type assertions on arrays** - Use `[] as string[]` not just `[]`
 8. **Auth checks in useEffect** - Let proxy handle route protection
+9. **Incorrect token in API calls** - Always use IdToken (not AccessToken) for backend calls
+10. **Missing AWS credentials** - DynamoDB operations require AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 
 ## Key Considerations
 
 - **Language**: Spanish is used throughout the UI
 - **Branding**: Package name is "menuum-frontend" and app displays "Menuum"
 - **Domain**: Live at https://app.menuum.com/
-- **Database**: Onboarding saves to `user_profiles` table (not `profiles`)
+- **Database**: User profiles stored in DynamoDB `user_profiles` table (partition key: `user_id`)
+- **Authentication**: AWS Cognito with JWT tokens (IdToken for user claims, AccessToken for AWS services)
 - **Form Library**: None - vanilla React state management with validation functions
 - **Next.js Version**: 16 with Turbopack
 - **Routing Layer**: Uses `proxy.ts` (Next.js 16's replacement for `middleware.ts`) running on Node.js runtime
+- **AWS Setup**: See `AWS_SETUP.md` for detailed Cognito and DynamoDB configuration instructions

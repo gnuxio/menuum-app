@@ -1,15 +1,12 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/cognito/server";
 
 export default async function Home() {
-    const supabase = await createClient();
-    const { data: { session } } = await supabase.auth.getSession();
+    const user = await getCurrentUser();
 
-    if (!session) {
+    if (!user) {
         redirect("/login");
     }
-
-    const { data: { user } } = await supabase.auth.getUser();
 
     return (
         <div className="p-4 md:p-8">
