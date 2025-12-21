@@ -24,8 +24,10 @@ export default function Login() {
 
         try {
             await authClient.login(email.trim(), password);
+            console.log("Successfully logged in redirect...");
             router.push("/");
         } catch (err) {
+            console.error("Error in login:", err);
             setLoading(false);
             const errorMessage = err instanceof Error ? err.message : "Error desconocido";
 
