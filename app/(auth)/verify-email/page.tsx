@@ -1,62 +1,79 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { ChefHat, Sparkles } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
 
-export default function Login() {
+export default function VerifyEmail() {
     const router = useRouter();
-    const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [loading, setLoading] = useState<boolean>(false);
-    const [error, setError] = useState<string>("");
+    const searchParams = useSearchParams();
 
-    async function handleLogin(e: React.FormEvent<HTMLFormElement>): Promise<void> {
+    const [email, setEmail] = useState("");
+    const [code, setCode] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const emailParam = searchParams.get('email');
+        if (emailParam) {
+            setEmail(emailParam);
+        }
+    }, [searchParams]);
+
+    async function handleVerify(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setLoading(true);
         setError("");
+        setMessage("");
 
         try {
-            await authClient.login(email.trim(), password);
-            console.log("Successfully logged in redirect...");
-            router.push("/");
-        } catch (err) {
-            console.error("Error in login:", err);
-            setLoading(false);
-            const errorMessage = err instanceof Error ? err.message : "Error desconocido";
+            await authClient.verifyEmail(email.trim(), code.trim());
+            setMessage("Email verificado correctamente. Redirigiendo al login...");
 
-            // Manejar error específico de email no verificado
-            if (errorMessage.includes('not confirmed') || errorMessage.includes('not verified')) {
-                setError("Debes verificar tu email antes de iniciar sesión. Revisa tu correo.");
-            } else {
-                setError(errorMessage);
-            }
+            setTimeout(() => {
+                router.push("/login");
+            }, 2000);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error al verificar email');
+        } finally {
+            setLoading(false);
         }
     }
 
-    function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>): void {
-        setEmail(e.target.value);
-        if (error) setError("");
-    }
+    async function handleResendCode() {
+        if (!email.trim()) {
+            setError("Por favor ingresa tu correo electrónico");
+            return;
+        }
 
-    function handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>): void {
-        setPassword(e.target.value);
-        if (error) setError("");
+        setLoading(true);
+        setError("");
+        setMessage("");
+
+        try {
+            await authClient.resendVerification(email.trim());
+            setMessage("Código reenviado. Revisa tu correo.");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error al reenviar código');
+        } finally {
+            setLoading(false);
+        }
     }
 
     return (
         <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-orange-50">
-            {/* Decorative backgrounds */}
+            {/* Fondos decorativos */}
             <div className="absolute top-0 left-0 w-64 h-64 bg-green-400/10 rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-0 right-0 w-72 h-72 bg-orange-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
 
-            {/* Animated card */}
+            {/* Tarjeta principal */}
             <motion.div
                 initial={{ opacity: 0, y: 40 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -67,58 +84,47 @@ export default function Login() {
                     <CardHeader className="text-center space-y-3">
                         <div className="flex justify-center">
                             <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
-                                <ChefHat className="w-7 h-7 text-white" />
+                                <Mail className="w-7 h-7 text-white" />
                             </div>
                         </div>
                         <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                            Bienvenido a Menuum
+                            Verificar email
                         </CardTitle>
                         <p className="text-gray-500 text-sm">
-                            Planifica tu semana sin complicarte 🍃
+                            Ingresa el código que enviamos a tu correo
                         </p>
                     </CardHeader>
 
                     <CardContent>
-                        <form onSubmit={handleLogin} className="flex flex-col gap-4">
+                        <form onSubmit={handleVerify} className="flex flex-col gap-4">
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="email" className="text-gray-700 font-medium">
                                     Correo electrónico
                                 </Label>
                                 <Input
                                     id="email"
-                                    name="email"
                                     type="email"
                                     placeholder="tucorreo@ejemplo.com"
                                     value={email}
-                                    onChange={handleEmailChange}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    autoComplete="email"
                                     className="rounded-xl border-gray-300 focus:border-green-500 focus:ring-green-500 transition-all"
                                 />
                             </div>
 
                             <div className="flex flex-col gap-2">
-                                <div className="flex justify-between items-center">
-                                    <Label htmlFor="password" className="text-gray-700 font-medium">
-                                        Contraseña
-                                    </Label>
-                                    <a
-                                        href="/forgot-password"
-                                        className="text-xs text-green-600 hover:text-emerald-700 font-medium hover:underline"
-                                    >
-                                        ¿Olvidaste tu contraseña?
-                                    </a>
-                                </div>
+                                <Label htmlFor="code" className="text-gray-700 font-medium">
+                                    Código de verificación
+                                </Label>
                                 <Input
-                                    id="password"
-                                    name="password"
-                                    type="password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={handlePasswordChange}
+                                    id="code"
+                                    type="text"
+                                    placeholder="123456"
+                                    value={code}
+                                    onChange={(e) => setCode(e.target.value)}
                                     required
-                                    autoComplete="current-password"
-                                    className="rounded-xl border-gray-300 focus:border-green-500 focus:ring-green-500 transition-all"
+                                    maxLength={6}
+                                    className="rounded-xl border-gray-300 focus:border-green-500 focus:ring-green-500 transition-all text-center text-2xl tracking-widest"
                                 />
                             </div>
 
@@ -128,28 +134,43 @@ export default function Login() {
                                 </p>
                             )}
 
+                            {message && (
+                                <p className="text-sm text-green-600 text-center bg-green-50 py-2 rounded-lg border border-green-100">
+                                    {message}
+                                </p>
+                            )}
+
                             <Button
                                 type="submit"
                                 disabled={loading}
                                 className="w-full py-6 text-lg rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold shadow-xl shadow-green-500/20 hover:shadow-green-500/40 transition-all hover:scale-[1.02]"
                             >
-                                {loading ? "Iniciando..." : "Entrar"}
+                                {loading ? "Verificando..." : "Verificar email"}
                             </Button>
 
+                            <button
+                                type="button"
+                                onClick={handleResendCode}
+                                disabled={loading}
+                                className="text-sm text-center text-gray-500 hover:text-green-600 transition-colors cursor-pointer"
+                            >
+                                ¿No recibiste el código? Reenviar
+                            </button>
+
                             <p className="text-sm text-center text-gray-500 mt-3">
-                                ¿No tienes cuenta?{" "}
+                                ¿Ya verificaste tu cuenta?{" "}
                                 <a
-                                    href="/register"
+                                    href="/login"
                                     className="text-green-600 hover:text-emerald-700 font-medium hover:underline"
                                 >
-                                    Regístrate
+                                    Inicia sesión
                                 </a>
                             </p>
                         </form>
                     </CardContent>
                 </Card>
 
-                {/* Decorative message */}
+                {/* Mensaje decorativo inferior */}
                 <div className="mt-6 flex justify-center items-center text-gray-500 text-sm gap-2">
                     <Sparkles className="w-4 h-4 text-green-500" />
                     <span>Planificación inteligente con IA</span>

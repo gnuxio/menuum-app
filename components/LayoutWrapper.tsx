@@ -23,7 +23,7 @@ export default function LayoutWrapper({ children }: { children: React.ReactNode 
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     // Rutas que no deberían mostrar el sidebar
-    const noSidebarRoutes = ['/login', '/register', '/onboarding'];
+    const noSidebarRoutes = ['/login', '/register', '/onboarding', '/forgot-password', '/reset-password', '/verify-email'];
     const shouldShowSidebar = !noSidebarRoutes.some(route => pathname.startsWith(route));
 
     if (!shouldShowSidebar) {
