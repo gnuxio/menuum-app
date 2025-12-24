@@ -59,7 +59,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                 {/* Toggle Button - Solo en desktop */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
-                    className="hidden md:block absolute -right-3 top-8 bg-white border border-gray-200 rounded-full p-1.5 shadow-sm hover:shadow-md transition-all z-10"
+                    className="hidden md:block absolute -right-3 top-8 bg-white border border-gray-200 rounded-full p-1.5 shadow-sm hover:shadow-md transition-all z-10 cursor-pointer"
                     aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
                 >
                     {isCollapsed ? (
@@ -91,7 +91,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                                 <li key={item.href}>
                                     <button
                                         onClick={() => handleNavigation(item.href)}
-                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${isCollapsed ? 'md:justify-center' : ''} ${
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all cursor-pointer ${isCollapsed ? 'md:justify-center' : ''} ${
                                             isActive
                                                 ? 'bg-green-50 text-green-600 font-semibold'
                                                 : 'text-gray-600 hover:bg-gray-50'
@@ -111,7 +111,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                 <div className="p-4 border-t border-gray-200">
                     <button
                         onClick={handleSignOut}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all ${isCollapsed ? 'md:justify-center' : ''}`}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all cursor-pointer ${isCollapsed ? 'md:justify-center' : ''}`}
                         title={isCollapsed ? 'Cerrar sesión' : undefined}
                     >
                         <LogOut className="w-5 h-5 flex-shrink-0" />
