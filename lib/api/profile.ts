@@ -34,6 +34,7 @@ export interface ProfileResponse {
     calories?: number;
     dislikes?: string[];
     country?: string;
+    avatar_url?: string;
 }
 
 /**
@@ -120,5 +121,57 @@ export async function updateProfile(payload: Partial<CreateProfilePayload>): Pro
             throw error;
         }
         throw new Error('Error desconocido al actualizar el perfil');
+    }
+}
+
+/**
+ * Upload user avatar to the Go backend
+ */
+export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> {
+    try {
+        const formData = new FormData();
+        formData.append('avatar', file);
+
+        const response = await fetchWithAuth(`${API_URL}/api/v1/profile/avatar`, {
+            method: 'POST',
+            // Don't set Content-Type header - browser sets it with boundary for multipart
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            const errorMessage = data.error || data.message || 'Error al subir imagen';
+            throw new Error(errorMessage);
+        }
+
+        return data;
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error('Error desconocido al subir imagen');
+    }
+}
+
+/**
+ * Delete user avatar from the Go backend
+ */
+export async function deleteAvatar(): Promise<void> {
+    try {
+        const response = await fetchWithAuth(`${API_URL}/api/v1/profile/avatar`, {
+            method: 'DELETE',
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            const errorMessage = data.error || data.message || 'Error al eliminar imagen';
+            throw new Error(errorMessage);
+        }
+    } catch (error) {
+        if (error instanceof Error) {
+            throw error;
+        }
+        throw new Error('Error desconocido al eliminar imagen');
     }
 }
