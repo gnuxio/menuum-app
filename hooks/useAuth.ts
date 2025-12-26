@@ -27,12 +27,19 @@ export function useAuth(): UseAuthReturn {
     try {
       setError(null);
 
-      // Verificar si el token está expirado
+      // Verificar si el token está expirado e intentar refrescarlo
       if (isTokenExpired()) {
-        clearAuthTokens();
-        setUser(null);
-        setLoading(false);
-        return;
+        try {
+          // Intentar refrescar el token usando el refresh token
+          await authClient.refresh();
+          // Si el refresh fue exitoso, continuar obteniendo el usuario
+        } catch (refreshError) {
+          // Si el refresh falla, limpiar tokens y salir
+          clearAuthTokens();
+          setUser(null);
+          setLoading(false);
+          return;
+        }
       }
 
       const userData = await authClient.me();

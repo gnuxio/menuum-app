@@ -4,7 +4,7 @@
  */
 
 import { authClient } from './client';
-import { getAccessToken, clearAuthTokens } from './tokens';
+import { getAccessToken, clearAuthTokens, isTokenExpired } from './tokens';
 
 let isRefreshing = false;
 let refreshPromise: Promise<void> | null = null;
@@ -35,6 +35,43 @@ export async function fetchWithAuth(url: string, options: RequestInit = {}): Pro
       headers,
     });
   };
+
+  // Verificar proactivamente si el token está expirado ANTES del request
+  if (isTokenExpired() && !isRefreshing) {
+    isRefreshing = true;
+    refreshPromise = authClient
+      .refresh()
+      .then(() => {
+        isRefreshing = false;
+        refreshPromise = null;
+      })
+      .catch((err) => {
+        isRefreshing = false;
+        refreshPromise = null;
+        // Si refresh falla, limpiar tokens y redirigir a login
+        clearAuthTokens();
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        throw err;
+      });
+
+    try {
+      await refreshPromise;
+    } catch (error) {
+      // El refresh falló, lanzar error
+      throw new Error('Failed to refresh token');
+    }
+  }
+
+  // Si otro request está refrescando, esperar
+  if (isRefreshing && refreshPromise) {
+    try {
+      await refreshPromise;
+    } catch (error) {
+      throw new Error('Failed to refresh token');
+    }
+  }
 
   // Primer intento
   let response = await makeRequest();

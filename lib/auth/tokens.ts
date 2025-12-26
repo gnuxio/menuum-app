@@ -26,14 +26,17 @@ export function getRefreshToken(): string | null {
   return localStorage.getItem('refresh_token');
 }
 
-// Verificar si el token está expirado
+// Verificar si el token está expirado o próximo a expirar
+// Incluye un buffer de 5 minutos para refrescar antes de la expiración real
 export function isTokenExpired(): boolean {
   if (typeof window === 'undefined') return true;
 
   const expiresAt = localStorage.getItem('expires_at');
   if (!expiresAt) return true;
 
-  return Date.now() >= parseInt(expiresAt);
+  // Buffer de 5 minutos (300000ms) antes de la expiración
+  const REFRESH_BUFFER_MS = 5 * 60 * 1000;
+  return Date.now() >= (parseInt(expiresAt) - REFRESH_BUFFER_MS);
 }
 
 // Limpiar todos los tokens
