@@ -108,6 +108,25 @@ export default function PlansView({ user }: PlansViewProps) {
     setFilteredPlans(filtered);
   };
 
+  // Agrupar planes por mes/año
+  const groupPlansByMonth = (plans: MenuHistoryItem[]) => {
+    const groups: { [key: string]: MenuHistoryItem[] } = {};
+
+    plans.forEach(plan => {
+      const date = new Date(plan.created_at);
+      const key = `${date.getFullYear()}-${String(date.getMonth()).padStart(2, '0')}`;
+      const monthYear = date.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+      const capitalizedMonthYear = monthYear.charAt(0).toUpperCase() + monthYear.slice(1);
+
+      if (!groups[capitalizedMonthYear]) {
+        groups[capitalizedMonthYear] = [];
+      }
+      groups[capitalizedMonthYear].push(plan);
+    });
+
+    return groups;
+  };
+
   const handleCreatePlan = async () => {
     try {
       setIsGenerating(true);
@@ -205,7 +224,7 @@ export default function PlansView({ user }: PlansViewProps) {
               </motion.div>
             )}
 
-            {/* Plans Grid */}
+            {/* Plans List */}
             {filteredPlans.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -215,9 +234,33 @@ export default function PlansView({ user }: PlansViewProps) {
                 <p className="text-gray-500">No se encontraron planes con los filtros aplicados</p>
               </motion.div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPlans.map((plan, index) => (
-                  <PlanCard key={plan.id} plan={plan} index={index} />
+              <div className="flex flex-col gap-8">
+                {Object.entries(groupPlansByMonth(filteredPlans)).map(([monthYear, monthPlans], groupIndex) => (
+                  <motion.div
+                    key={monthYear}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: groupIndex * 0.1 }}
+                    className="flex flex-col gap-3 md:gap-4"
+                  >
+                    {/* Month Header */}
+                    <div className="flex items-center gap-3 px-2">
+                      <h2 className="text-xl font-bold text-gray-700">
+                        {monthYear}
+                      </h2>
+                      <div className="flex-1 h-px bg-gradient-to-r from-gray-300 to-transparent" />
+                      <span className="text-sm text-gray-500 font-medium">
+                        {monthPlans.length} {monthPlans.length === 1 ? 'plan' : 'planes'}
+                      </span>
+                    </div>
+
+                    {/* Plans in this month */}
+                    <div className="flex flex-col gap-3 md:gap-4">
+                      {monthPlans.map((plan, index) => (
+                        <PlanCard key={plan.id} plan={plan} index={index} />
+                      ))}
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             )}
