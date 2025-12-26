@@ -52,14 +52,15 @@ export async function createProfile(payload: CreateProfilePayload): Promise<Prof
             body: JSON.stringify(payload),
         });
 
-        const data = await response.json();
+        const result = await response.json();
 
         if (!response.ok) {
-            const errorMessage = data.error || data.message || 'Error al crear el perfil';
+            const errorMessage = result.error?.message || result.message || 'Error al crear el perfil';
             throw new Error(errorMessage);
         }
 
-        return data;
+        // Backend envuelve la respuesta en { data: ... }
+        return result.data;
     } catch (error) {
         if (error instanceof Error) {
             throw error;
@@ -78,14 +79,15 @@ export async function getProfile(): Promise<ProfileResponse> {
             // NO Authorization header - las cookies se envían automáticamente
         });
 
-        const data = await response.json();
+        const result = await response.json();
 
         if (!response.ok) {
-            const errorMessage = data.error || data.message || 'Error al obtener el perfil';
+            const errorMessage = result.error?.message || result.message || 'Error al obtener el perfil';
             throw new Error(errorMessage);
         }
 
-        return data;
+        // Backend envuelve la respuesta en { data: ... }
+        return result.data;
     } catch (error) {
         if (error instanceof Error) {
             throw error;
@@ -108,14 +110,15 @@ export async function updateProfile(payload: Partial<CreateProfilePayload>): Pro
             body: JSON.stringify(payload),
         });
 
-        const data = await response.json();
+        const result = await response.json();
 
         if (!response.ok) {
-            const errorMessage = data.error || data.message || 'Error al actualizar el perfil';
+            const errorMessage = result.error?.message || result.message || 'Error al actualizar el perfil';
             throw new Error(errorMessage);
         }
 
-        return data;
+        // Backend envuelve la respuesta en { data: ... }
+        return result.data;
     } catch (error) {
         if (error instanceof Error) {
             throw error;
@@ -138,14 +141,15 @@ export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> 
             body: formData,
         });
 
-        const data = await response.json();
+        const result = await response.json();
 
         if (!response.ok) {
-            const errorMessage = data.error || data.message || 'Error al subir imagen';
+            const errorMessage = result.error?.message || result.message || 'Error al subir imagen';
             throw new Error(errorMessage);
         }
 
-        return data;
+        // Backend envuelve la respuesta en { data: { avatar_url: "..." } }
+        return result.data;
     } catch (error) {
         if (error instanceof Error) {
             throw error;

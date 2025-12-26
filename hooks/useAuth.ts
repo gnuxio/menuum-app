@@ -1,11 +1,12 @@
 /**
- * Hook de autenticación que usa el auth-service con cookies
+ * Hook de autenticación que usa el auth-service con Bearer tokens
  * Reemplaza el hook de Supabase
  */
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient, type User } from '@/lib/auth/client';
+import { clearAuthTokens, isTokenExpired } from '@/lib/auth/tokens';
 
 interface UseAuthReturn {
   user: User | null;
@@ -25,11 +26,22 @@ export function useAuth(): UseAuthReturn {
   const fetchUser = useCallback(async () => {
     try {
       setError(null);
+
+      // Verificar si el token está expirado
+      if (isTokenExpired()) {
+        clearAuthTokens();
+        setUser(null);
+        setLoading(false);
+        return;
+      }
+
       const userData = await authClient.me();
       setUser(userData);
     } catch (err) {
       setUser(null);
       setError(err instanceof Error ? err.message : 'Error desconocido');
+      // Si falla la llamada, limpiar tokens
+      clearAuthTokens();
     } finally {
       setLoading(false);
     }

@@ -1,16 +1,16 @@
 /**
  * Cliente de autenticación para Client Components
- * Maneja todas las operaciones de auth con cookies httpOnly
+ * Maneja todas las operaciones de auth con Bearer tokens
  *
- * En desarrollo local, usa el proxy de Next.js (/api/auth) para evitar problemas con cookies cross-origin
- * En producción, llama directamente al backend de auth
+ * Llama directamente al backend de auth en todos los entornos
  */
 
-// En desarrollo local, usar proxy de Next.js para evitar problemas con cookies cross-origin
-const isLocal = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-const AUTH_URL = isLocal
-  ? '/api/auth' // Proxy local
-  : (process.env.NEXT_PUBLIC_AUTH_URL || 'https://api.menuum.com/auth'); // Directo en producción
+import { setAuthTokens, getAccessToken, getRefreshToken, clearAuthTokens } from './tokens';
+
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+const AUTH_URL = IS_PRODUCTION
+  ? 'https://api.menuum.com/auth'
+  : (process.env.NEXT_PUBLIC_AUTH_URL || 'http://localhost:8080/auth');
 
 export interface User {
   id: string;
@@ -22,6 +22,10 @@ export interface User {
 export interface AuthResponse {
   user?: User;
   message?: string;
+  access_token?: string;
+  id_token?: string;
+  refresh_token?: string;
+  expires_in?: number;
 }
 
 export interface ErrorResponse {
@@ -30,23 +34,30 @@ export interface ErrorResponse {
 }
 
 /**
- * Helper para hacer fetch con credentials
+ * Helper para hacer fetch con Authorization header
  */
 async function authFetch(endpoint: string, options: RequestInit = {}): Promise<Response> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  // Agregar Authorization header si hay token
+  const accessToken = getAccessToken();
+  if (accessToken) {
+    headers['Authorization'] = `Bearer ${accessToken}`;
+  }
+
   return fetch(`${AUTH_URL}${endpoint}`, {
     ...options,
-    credentials: 'include', // CRÍTICO: envía cookies
-    headers: {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    },
+    headers,
   });
 }
 
 export const authClient = {
   /**
    * Login con email y password
-   * Establece cookies httpOnly automáticamente
+   * Guarda tokens en localStorage
    */
   async login(email: string, password: string): Promise<AuthResponse> {
     const response = await authFetch('/login', {
@@ -58,6 +69,16 @@ export const authClient = {
 
     if (!response.ok) {
       throw new Error(data.message || 'Error al iniciar sesión');
+    }
+
+    // Guardar tokens en localStorage
+    if (data.access_token && data.id_token && data.refresh_token && data.expires_in) {
+      setAuthTokens({
+        access_token: data.access_token,
+        id_token: data.id_token,
+        refresh_token: data.refresh_token,
+        expires_in: data.expires_in,
+      });
     }
 
     return data;
@@ -138,17 +159,34 @@ export const authClient = {
 
   /**
    * Refrescar access token
-   * Usa refresh_token desde cookies automáticamente
+   * Envía refresh_token en el body
    */
   async refresh(): Promise<AuthResponse> {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
     const response = await authFetch('/refresh', {
       method: 'POST',
+      body: JSON.stringify({ refresh_token: refreshToken }),
     });
 
     const data = await response.json();
 
     if (!response.ok) {
+      clearAuthTokens();
       throw new Error(data.message || 'Error al refrescar sesión');
+    }
+
+    // Actualizar tokens en localStorage
+    if (data.access_token && data.id_token && data.refresh_token && data.expires_in) {
+      setAuthTokens({
+        access_token: data.access_token,
+        id_token: data.id_token,
+        refresh_token: data.refresh_token,
+        expires_in: data.expires_in,
+      });
     }
 
     return data;
@@ -156,15 +194,22 @@ export const authClient = {
 
   /**
    * Logout
-   * Limpia todas las cookies
+   * Limpia todos los tokens de localStorage
    */
   async logout(): Promise<void> {
-    const response = await authFetch('/logout', {
-      method: 'POST',
-    });
+    try {
+      const response = await authFetch('/logout', {
+        method: 'POST',
+      });
 
-    if (!response.ok) {
-      console.error('Error en logout, pero continuando...');
+      if (!response.ok) {
+        console.error('Error en logout, pero continuando...');
+      }
+    } catch (error) {
+      console.error('Error en logout:', error);
+    } finally {
+      // Siempre limpiar tokens localmente
+      clearAuthTokens();
     }
   },
 

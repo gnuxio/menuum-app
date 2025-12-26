@@ -96,11 +96,11 @@ export default function AvatarUpload({
         <div className="w-28 h-28 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-white shadow-lg relative">
           {preview || currentAvatarUrl ? (
             <Image
-              src={preview || currentAvatarUrl}
+              src={preview || currentAvatarUrl || ''}
               alt="Avatar"
               fill
               className="object-cover"
-              unoptimized={!!preview}
+              unoptimized
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-white text-3xl font-bold">

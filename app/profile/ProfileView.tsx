@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { getProfile, type ProfileResponse } from '@/lib/api/profile';
-import { User } from '@/lib/auth/server';
+import { User } from '@/lib/auth/client';
 import AvatarUpload from '@/components/profile/AvatarUpload';
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
 import ProfileInfoCard from '@/components/profile/ProfileInfoCard';

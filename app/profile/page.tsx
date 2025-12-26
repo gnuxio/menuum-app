@@ -1,14 +1,15 @@
-import { redirect } from "next/navigation";
-import { getUser } from "@/lib/auth/server";
+'use client';
+
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { useAuth } from "@/hooks/useAuth";
 import ProfileView from "./ProfileView";
 
-export default async function ProfilePage() {
-  // Server-side auth check
-  const user = await getUser();
+export default function ProfilePage() {
+  const { user } = useAuth();
 
-  if (!user) {
-    redirect("/login");
-  }
-
-  return <ProfileView user={user} />;
+  return (
+    <ProtectedRoute>
+      <ProfileView user={user!} />
+    </ProtectedRoute>
+  );
 }
