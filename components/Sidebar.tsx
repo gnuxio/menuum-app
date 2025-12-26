@@ -71,13 +71,21 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
 
                 {/* Header */}
                 <div className="p-6 border-b border-gray-200">
-                    <h1 className={`text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent ${isCollapsed ? 'hidden md:block md:text-center' : ''}`}>
+                    <button
+                        onClick={() => handleNavigation('/')}
+                        className={`text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer ${isCollapsed ? 'hidden md:block md:text-center' : ''}`}
+                        aria-label="Ir al dashboard"
+                    >
                         {isCollapsed ? 'M' : 'Menuum'}
-                    </h1>
+                    </button>
                     {/* En mobile siempre mostrar el nombre completo */}
-                    <h1 className="md:hidden text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                    <button
+                        onClick={() => handleNavigation('/')}
+                        className="md:hidden text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent hover:opacity-80 transition-opacity cursor-pointer"
+                        aria-label="Ir al dashboard"
+                    >
                         Menuum
-                    </h1>
+                    </button>
                 </div>
 
                 {/* Navigation */}
