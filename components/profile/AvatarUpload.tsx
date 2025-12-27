@@ -126,7 +126,7 @@ export default function AvatarUpload({
 
       {/* Upload Instructions */}
       <p className="text-sm text-gray-500 text-center">
-        {uploading ? 'Subiendo imagen...' : 'Haz clic para cambiar tu foto'}
+        {uploading ? 'Subiendo imagen...' : 'Clic en la imagen para cambiar tu foto'}
       </p>
     </div>
   );
