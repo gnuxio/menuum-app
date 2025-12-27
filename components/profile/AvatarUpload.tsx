@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Camera, Loader2, X } from 'lucide-react';
-import { uploadAvatar, deleteAvatar } from '@/lib/api/profile';
+import { Camera, Loader2 } from 'lucide-react';
+import { uploadAvatar } from '@/lib/api/profile';
 
 interface AvatarUploadProps {
   currentAvatarUrl?: string;
@@ -67,20 +67,6 @@ export default function AvatarUpload({
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm('¿Eliminar foto de perfil?')) return;
-
-    try {
-      setUploading(true);
-      await deleteAvatar();
-      onUploadSuccess('');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al eliminar imagen');
-    } finally {
-      setUploading(false);
-    }
-  };
-
   // Generate initials for default avatar
   const initials = userName
     .split(' ')
@@ -128,17 +114,6 @@ export default function AvatarUpload({
           <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
             <Loader2 className="w-8 h-8 text-white animate-spin" />
           </div>
-        )}
-
-        {/* Delete Button */}
-        {currentAvatarUrl && !uploading && (
-          <button
-            onClick={handleDelete}
-            className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 rounded-full p-2 shadow-lg transition-colors"
-            title="Eliminar foto"
-          >
-            <X className="w-4 h-4 text-white" />
-          </button>
         )}
       </div>
 
