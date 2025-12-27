@@ -41,7 +41,7 @@ npm run lint
 - **Styling:** Tailwind CSS v4 with custom theme
 - **Animations:** Framer Motion
 - **Icons:** Lucide React
-- **Auth:** Supabase
+- **Auth:** Custom Bearer token authentication with localStorage
 - **Backend API:** Go microservice (https://api.menuum.com)
 - **Deployment:** Docker (standalone mode)
 
@@ -64,58 +64,80 @@ npm run lint
   - `MobileHeader.tsx` - Mobile header with menu toggle
 
 - `hooks/` - Custom React hooks
-  - `useAuth.ts` - Authentication hook (user state, loading, signOut)
+  - `useAuth.ts` - Authentication hook (user state, loading, signOut, refreshUser)
 
 - `lib/` - Utilities and services
-  - `supabase/` - Supabase SSR clients
-    - `client.ts` - Browser client for Client Components
-    - `server.ts` - Server client for Server Components/Actions
-    - `proxy.ts` - Session management helper for proxy.ts
+  - `auth/` - Authentication services
+    - `client.ts` - Auth client for login, register, logout, token refresh
+    - `tokens.ts` - Token management utilities (localStorage)
+    - `interceptor.ts` - Fetch wrapper with automatic token refresh
   - `api/` - Backend API client services
     - `profile.ts` - Profile operations with Go backend
+    - `plans.ts` - Menu/plans operations with Go backend
   - `types/` - TypeScript type definitions
     - `onboarding.ts` - Shared types for onboarding flow
+    - `profile.ts` - Profile data types
+    - `plans.ts` - Menu/plan data types
   - `utils.ts` - Utility functions (cn for class merging)
 
-- `proxy.ts` - Route protection and session management (root level, Node.js runtime)
+- `components/ProtectedRoute.tsx` - Client-side route protection wrapper
 
 ### Backend Architecture
 
-**Two-tier backend:**
-
-1. **Supabase** - Authentication only
-   - User registration and login
-   - Session management via JWT tokens
-   - JWT tokens are passed to Go backend for authorization
-
-2. **Go Backend API** (`https://api.menuum.com`)
-   - Profile management (`/api/v1/profile`)
-   - All business logic and data storage
-   - Validates Supabase JWT tokens
-   - Accessed via `lib/api/profile.ts` client
+**Single Go Backend** (`https://api.menuum.com`):
+- Authentication service (`/auth/*`)
+  - User registration, login, email verification
+  - Password reset and change password
+  - Token refresh and session management
+- Profile management (`/api/v1/profile`)
+- Menu/plans management (`/api/v1/menu`)
+- All business logic and data storage
 
 **Environment variables:**
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=           # Supabase project URL
-NEXT_PUBLIC_SUPABASE_ANON_KEY=      # Supabase anonymous key
 NEXT_PUBLIC_API_URL=                # Go backend URL (defaults to https://api.menuum.com)
+NEXT_PUBLIC_AUTH_URL=               # Auth service URL (dev: http://localhost:8080/auth, prod: uses API_URL/auth)
+NODE_ENV=                           # Environment (development/production)
 ```
 
 ### Authentication Flow
 
-1. User authenticates with Supabase (login/register pages)
-2. Supabase returns JWT token stored in cookies
-3. `proxy.ts` validates session on every request
-4. Frontend calls Go backend with JWT token in Authorization header
-5. Go backend validates JWT and processes requests
+**Token-based authentication with Bearer tokens stored in localStorage:**
 
-**Client-side auth:**
-- Use `useAuth()` hook in Client Components for auth state
-- Use `createClient()` from `@/lib/supabase/client`
+1. User logs in via `authClient.login(email, password)`
+2. Backend returns `access_token`, `id_token`, `refresh_token`, and `expires_in`
+3. Tokens are stored in localStorage via `setAuthTokens()`
+4. All API requests use `fetchWithAuth()` which:
+   - Automatically adds `Authorization: Bearer {access_token}` header
+   - Checks if token is expired (with 5-minute buffer)
+   - Automatically refreshes token if expired or on 401 response
+   - Retries original request with new token
+5. On logout, tokens are cleared from localStorage
 
-**Server-side auth:**
-- Use `createClient()` from `@/lib/supabase/server` in Server Components
-- Use `redirect()` for navigation in Server Components
+**Key files:**
+- `lib/auth/client.ts` - Auth operations (login, register, logout, refresh, etc.)
+- `lib/auth/tokens.ts` - Token storage in localStorage
+- `lib/auth/interceptor.ts` - `fetchWithAuth()` wrapper with auto-refresh
+- `hooks/useAuth.ts` - React hook for auth state in Client Components
+- `components/ProtectedRoute.tsx` - Client-side route protection wrapper
+
+**Usage in Client Components:**
+```typescript
+import { useAuth } from '@/hooks/useAuth'
+import { authClient } from '@/lib/auth/client'
+
+// In component
+const { user, loading, signOut } = useAuth()
+
+// Login
+await authClient.login('email@example.com', 'password')
+
+// API calls (automatic token handling)
+import { fetchWithAuth } from '@/lib/auth/interceptor'
+const response = await fetchWithAuth('https://api.menuum.com/api/v1/profile', {
+  method: 'GET'
+})
+```
 
 ### Onboarding Flow
 
@@ -167,93 +189,79 @@ Configured in `tsconfig.json`:
 
 ## Critical Architecture Decisions
 
-### Server vs Client Components
+### Client-Side Authentication Pattern
 
-**Server Components (default):**
-- Use for pages that need auth verification before rendering
-- Example: `app/page.tsx` - checks session server-side before rendering dashboard
-- Can use `redirect()` directly in async component body
-- Use `createClient()` from `@/lib/supabase/server`
+**All authentication is handled client-side** with Bearer tokens in localStorage:
 
-**Client Components (use 'use client'):**
-- Required for interactivity (onClick, useState, useEffect)
-- All onboarding steps are Client Components (need form interactions)
-- Auth pages (login/register) are Client Components (forms + navigation)
-- LayoutWrapper, Sidebar, MobileHeader are Client Components
-- Use `useAuth()` hook for auth state in Client Components
-- Use `createClient()` from `@/lib/supabase/client`
+**Client Components (all pages are Client Components):**
+- All pages use `'use client'` directive
+- Auth pages (login/register) use `authClient` directly for login/register
+- Protected pages use `ProtectedRoute` wrapper or `useAuth()` hook
 - Use `router.push()` or `router.replace()` for navigation (NOT `redirect()`)
 
-### Supabase SSR Architecture
-
-**Three Client Types (IMPORTANT - use correct one):**
-
-1. **Browser Client** (`lib/supabase/client.ts`):
+**Route Protection:**
+1. **ProtectedRoute Component** (`components/ProtectedRoute.tsx`):
    ```typescript
-   import { createClient } from '@/lib/supabase/client'
-   ```
-   - For Client Components only
-   - Handles cookies automatically in browser
-   - Used in: login, register, useAuth hook, Sidebar
+   import { ProtectedRoute } from '@/components/ProtectedRoute'
 
-2. **Server Client** (`lib/supabase/server.ts`):
+   export default function DashboardPage() {
+     return (
+       <ProtectedRoute>
+         <DashboardView />
+       </ProtectedRoute>
+     )
+   }
+   ```
+   - Checks authentication via `useAuth()` hook
+   - Shows loading state while checking auth
+   - Redirects to `/login` if not authenticated
+
+2. **useAuth Hook** (`hooks/useAuth.ts`):
    ```typescript
-   import { createClient } from '@/lib/supabase/server'
+   const { user, loading, error, signOut, refreshUser } = useAuth()
    ```
-   - For Server Components, Server Actions, Route Handlers
-   - Async function that returns client
-   - Manages cookies via Next.js `cookies()` API
-   - Used in: app/page.tsx (dashboard)
+   - Returns current user or null
+   - Automatically refreshes expired tokens
+   - Provides `signOut()` function for logout
 
-3. **Proxy Helper** (`lib/supabase/proxy.ts`):
-   ```typescript
-   import { updateSession } from '@/lib/supabase/proxy'
-   ```
-   - **Do NOT import directly** - used only by root `proxy.ts`
-   - Handles session refresh and route protection
-   - Returns modified NextResponse with updated cookies
-
-### Route Protection Pattern
-
-**Proxy** (`proxy.ts` in project root):
-- Exported `proxy()` function runs on ALL requests (see config matcher)
-- Calls `updateSession()` from `lib/supabase/proxy.ts` which:
-  1. Refreshes Supabase session automatically
-  2. Redirects unauthenticated users from protected pages to `/login`
-  3. Redirects authenticated users from auth pages to `/`
-- Protected routes: `/`, `/onboarding`
-- Public routes: `/login`, `/register`
-
-**Important**:
-- Do NOT add auth checks in `useEffect` with `redirect()` - this creates infinite loops
-- Let proxy handle route protection
-- Next.js 16 uses `proxy.ts` pattern (not traditional `middleware.ts`)
+**Important:**
+- No server-side middleware or proxy for auth
+- All routes are public by default
+- Protected routes must explicitly use `ProtectedRoute` wrapper or check `user` from `useAuth()`
+- Token refresh happens automatically in `fetchWithAuth()` interceptor
 
 ### Backend API Client Pattern
 
+**All API clients use `fetchWithAuth()` for automatic token management:**
+
 **Profile API** (`lib/api/profile.ts`):
-- Client-side service for Go backend communication
-- Automatically retrieves Supabase JWT token from session
-- Adds token to `Authorization: Bearer` header
-- Three main operations:
-  - `createProfile(payload)` - POST `/api/v1/profile`
-  - `getProfile()` - GET `/api/v1/profile`
-  - `updateProfile(payload)` - PUT `/api/v1/profile`
-- Error handling with user-friendly Spanish messages
-- Type-safe with `CreateProfilePayload` and `ProfileResponse` interfaces
+- `createProfile(payload)` - POST `/api/v1/profile`
+- `getProfile()` - GET `/api/v1/profile`
+- `updateProfile(payload)` - PUT `/api/v1/profile`
+- `uploadAvatar(file)` - POST `/api/v1/profile/avatar`
+- `deleteAvatar()` - DELETE `/api/v1/profile/avatar`
 
-**Usage pattern:**
+**Plans API** (`lib/api/plans.ts`):
+- `getMenuHistory()` - GET `/api/v1/menu/history` - returns all user's menu plans
+- `getMenuById(id)` - GET `/api/v1/menu/:id` - returns specific menu with all days/meals
+- `createMenu()` - POST `/api/v1/menu` - creates new menu (async, returns 202)
+
+**Common patterns:**
+- All use `fetchWithAuth()` from `lib/auth/interceptor.ts`
+- Automatic Bearer token injection
+- Automatic token refresh on expiration
+- Type-safe with TypeScript interfaces
+- Error handling with Spanish messages
+- Backend wraps responses in `{ data: ... }` structure
+
+**Usage example:**
 ```typescript
-import { createProfile } from '@/lib/api/profile'
+import { getProfile } from '@/lib/api/profile'
+import { getMenuHistory } from '@/lib/api/plans'
 
-await createProfile({
-  name: "Juan",
-  last_name: "Pérez",
-  country: "México",
-  goal: "perder_peso",
-  activity_level: "moderado",
-  dislikes: ["pescado"]
-})
+// Automatic token handling - no need to pass tokens manually
+const profile = await getProfile()
+const plans = await getMenuHistory()
 ```
 
 ### Type Safety Pattern
@@ -264,6 +272,11 @@ await createProfile({
 - Numeric fields (edad, peso, estatura, comidas_al_dia) are `number` type, not `string`
 - Arrays must be typed: `string[]` not `any[]`
 - Constants exported for common values (OBJETIVOS, SEXO, NIVEL_ACTIVIDAD, etc.)
+
+**Type organization:**
+- `lib/types/onboarding.ts` - Onboarding flow data structures
+- `lib/types/profile.ts` - Profile data structures
+- `lib/types/plans.ts` - Menu/plan data structures
 
 **Example - DO NOT create inline interfaces:**
 ```typescript
@@ -307,23 +320,25 @@ className="bg-white/70 backdrop-blur-xl rounded-3xl border-2 border-gray-200/50"
 ## Common Pitfalls to Avoid
 
 1. **Using `redirect()` in Client Components** - Causes "not a function" errors; use `router.push()`
-2. **Mixing up Supabase client types** - Always match component type (client/server)
-3. **Creating duplicate type definitions** - Always import from `lib/types/`
-4. **Using slate colors** - Should be gray (palette consistency)
-5. **Storing numbers as strings** - Age, weight, height are `number` type
-6. **Missing type assertions on arrays** - Use `[] as string[]` not just `[]`
-7. **Auth checks in useEffect** - Let proxy handle route protection
-8. **Direct backend calls without JWT** - Always use `lib/api/*` clients which handle auth
-9. **Saving to Supabase database** - User profiles are stored in Go backend, not Supabase
+2. **Manual token management** - Always use `fetchWithAuth()`, never manually add Authorization headers
+3. **Forgetting ProtectedRoute wrapper** - Protected pages need explicit protection (no automatic middleware)
+4. **Creating duplicate type definitions** - Always import from `lib/types/`
+5. **Using slate colors** - Should be gray (palette consistency)
+6. **Storing numbers as strings** - Age, weight, height are `number` type
+7. **Missing type assertions on arrays** - Use `[] as string[]` not just `[]`
+8. **Direct fetch() calls to backend** - Always use `lib/api/*` clients or `fetchWithAuth()`
+9. **Assuming server-side auth** - All auth is client-side with localStorage tokens
 
 ## Key Considerations
 
 - **Language**: Spanish is used throughout the UI
 - **Branding**: Package name is "menuum-frontend" and app displays "Menuum"
 - **Domain**: Live at https://app.menuum.com/
-- **Backend**: Go API at https://api.menuum.com
-- **Database**: Profiles stored in Go backend database (not Supabase)
+- **Backend**: Go API at https://api.menuum.com (handles both auth and data)
+- **Auth Strategy**: Client-side Bearer tokens in localStorage (NO Supabase, NO server-side sessions)
+- **Token Refresh**: Automatic via `fetchWithAuth()` interceptor with 5-minute expiration buffer
+- **Route Protection**: Client-side via `ProtectedRoute` component (NO middleware)
 - **Form Library**: None - vanilla React state management with validation functions
 - **Next.js Version**: 16 with Turbopack
-- **Routing Layer**: Uses `proxy.ts` (Next.js 16 pattern) running on Node.js runtime
-- **Onboarding**: 9 steps total (not 8) - added Step3Personales for personal information
+- **Onboarding**: 9 steps total (not 8) - includes Step3Personales for personal information
+- **Plans Feature**: Menu generation with async processing (202 status on creation)
