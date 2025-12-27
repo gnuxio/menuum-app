@@ -93,3 +93,40 @@ export async function createMenu(): Promise<MenuHistoryItem> {
     throw new Error('Error desconocido al generar nuevo plan');
   }
 }
+
+/**
+ * Regenerate a specific meal in a menu
+ */
+export async function regenerateMeal(
+  menuId: string,
+  dayName: string,
+  mealType: string
+): Promise<MenuDetail> {
+  try {
+    const response = await fetchWithAuth(`${API_URL}/api/v1/menu/${menuId}/meals/regenerate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        day_name: dayName,
+        meal_type: mealType,
+      }),
+    });
+
+    const result: MenuDetailResponse = await response.json();
+
+    if (!response.ok) {
+      const errorMessage = (result as any).error?.message || (result as any).message || 'Error al regenerar comida';
+      throw new Error(errorMessage);
+    }
+
+    // Backend envuelve la respuesta en { data: {...} }
+    return result.data;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Error desconocido al regenerar comida');
+  }
+}

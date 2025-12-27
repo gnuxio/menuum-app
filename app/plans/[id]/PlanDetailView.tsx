@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { getMenuById } from '@/lib/api/plans';
+import { getMenuById, regenerateMeal } from '@/lib/api/plans';
 import { MenuDetail, STATUS_LABELS, STATUS_BADGE_STYLES } from '@/lib/types/plans';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, Flame, Loader2 } from 'lucide-react';
 import DayCard from '@/components/plans/DayCard';
+import { toast } from 'sonner';
 
 interface PlanDetailViewProps {
   planId: string;
@@ -19,6 +20,7 @@ export default function PlanDetailView({ planId }: PlanDetailViewProps) {
   const [plan, setPlan] = useState<MenuDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [regeneratingMeal, setRegeneratingMeal] = useState<{ dayName: string; mealType: string } | null>(null);
 
   useEffect(() => {
     loadPlan();
@@ -44,6 +46,20 @@ export default function PlanDetailView({ planId }: PlanDetailViewProps) {
       month: 'long',
       year: 'numeric'
     });
+  };
+
+  const handleRegenerateMeal = async (dayName: string, mealType: string) => {
+    try {
+      setRegeneratingMeal({ dayName, mealType });
+      const updatedMenu = await regenerateMeal(planId, dayName, mealType);
+      setPlan(updatedMenu);
+      toast.success('¡Comida regenerada exitosamente!');
+    } catch (err) {
+      console.error('Error regenerating meal:', err);
+      toast.error('Error al regenerar. Intenta de nuevo');
+    } finally {
+      setRegeneratingMeal(null);
+    }
   };
 
   // Loading state
@@ -143,7 +159,14 @@ export default function PlanDetailView({ planId }: PlanDetailViewProps) {
         {plan.status === 'completed' && plan.days && plan.days.length > 0 ? (
           <div className="flex flex-col gap-6">
             {plan.days.map((day, index) => (
-              <DayCard key={index} day={day} index={index} />
+              <DayCard
+                key={index}
+                day={day}
+                index={index}
+                menuId={planId}
+                onRegenerateMeal={handleRegenerateMeal}
+                regeneratingMeal={regeneratingMeal}
+              />
             ))}
           </div>
         ) : plan.status === 'processing' ? (

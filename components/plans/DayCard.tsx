@@ -5,14 +5,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Day, MEAL_TYPE_STYLES } from '@/lib/types/plans';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Flame, ChevronDown, ChevronUp } from 'lucide-react';
+import { Flame, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface DayCardProps {
   day: Day;
   index: number;
+  menuId: string;
+  onRegenerateMeal: (dayName: string, mealType: string) => Promise<void>;
+  regeneratingMeal: { dayName: string; mealType: string } | null;
 }
 
-export default function DayCard({ day, index }: DayCardProps) {
+export default function DayCard({ day, index, menuId, onRegenerateMeal, regeneratingMeal }: DayCardProps) {
   const totalCalories = day.meals.reduce((sum, meal) => sum + meal.calories, 0);
   const [expandedMeals, setExpandedMeals] = useState<Set<number>>(new Set());
 
@@ -51,22 +55,45 @@ export default function DayCard({ day, index }: DayCardProps) {
           <div className="space-y-3">
             {day.meals.map((meal, mealIndex) => {
               const isExpanded = expandedMeals.has(mealIndex);
+              const isRegenerating = regeneratingMeal?.dayName === day.name && regeneratingMeal?.mealType === meal.type;
 
               return (
-                <div
+                <motion.div
                   key={mealIndex}
-                  className="rounded-2xl bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 hover:border-green-200 transition-all overflow-hidden"
+                  initial={{ opacity: 1, scale: 1 }}
+                  animate={{ opacity: isRegenerating ? 0.5 : 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="rounded-2xl bg-gradient-to-br from-gray-50 to-white border-2 border-gray-100 hover:border-green-200 transition-all overflow-hidden relative"
                 >
+                  {/* Regenerate Button */}
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRegenerateMeal(day.name, meal.type);
+                    }}
+                    disabled={isRegenerating || regeneratingMeal !== null}
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2 z-10 border-gray-300 hover:border-green-500 hover:bg-green-50 transition-colors disabled:opacity-50"
+                    title="Regenerar comida"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${isRegenerating ? 'animate-spin' : ''}`} />
+                  </Button>
+
                   {/* Clickeable header */}
                   <button
                     onClick={() => toggleMeal(mealIndex)}
-                    className="w-full p-4 md:p-5 flex items-center justify-between gap-4 text-left hover:bg-white/50 transition-colors"
+                    className="w-full p-4 md:p-5 flex items-center justify-between gap-4 text-left hover:bg-white/50 transition-colors pr-14"
+                    disabled={isRegenerating}
                   >
                     <div className="flex-1 min-w-0">
                       <Badge className={`${MEAL_TYPE_STYLES[meal.type] || 'bg-gray-100 text-gray-700'} text-xs md:text-sm px-2 md:px-3 py-1 mb-2`}>
                         {meal.type}
                       </Badge>
-                      <h4 className="font-bold text-gray-800 text-base md:text-lg truncate">{meal.name}</h4>
+                      <h4 className="font-bold text-gray-800 text-base md:text-lg truncate">
+                        {meal.name}
+                        {isRegenerating && <span className="ml-2 text-sm text-gray-500">Regenerando...</span>}
+                      </h4>
                     </div>
 
                     <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
@@ -109,7 +136,7 @@ export default function DayCard({ day, index }: DayCardProps) {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
           </div>
