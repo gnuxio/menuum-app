@@ -2,19 +2,28 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getProfile, type ProfileResponse } from '@/lib/api/profile';
+import { getProfile, updateProfile, CreateProfilePayload, type ProfileResponse } from '@/lib/api/profile';
 import { User } from '@/lib/auth/client';
 import AvatarUpload from '@/components/profile/AvatarUpload';
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
 import ProfileInfoCard from '@/components/profile/ProfileInfoCard';
-import { GOAL_LABELS } from '@/lib/types/profile';
+import { GOAL_LABELS, ACTIVITY_LABELS } from '@/lib/types/profile';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   User as UserIcon,
   Target,
   MapPin,
   Flame,
   UtensilsCrossed,
-  Shield
+  Shield,
+  Pencil,
+  Check,
+  X,
+  Loader2,
+  CheckCircle,
+  Activity
 } from 'lucide-react';
 
 interface ProfileViewProps {
@@ -25,6 +34,13 @@ export default function ProfileView({ user }: ProfileViewProps) {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Edit mode states
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<Partial<CreateProfilePayload>>({});
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -45,6 +61,92 @@ export default function ProfileView({ user }: ProfileViewProps) {
 
   const handleAvatarUpdate = (newUrl: string) => {
     setProfile(prev => prev ? { ...prev, avatar_url: newUrl } : null);
+  };
+
+  // Initialize form data with profile data
+  const initializeFormData = () => {
+    if (!profile) return;
+    setFormData({
+      name: profile.name || '',
+      last_name: profile.last_name || '',
+      age: profile.age || 0,
+      weight: profile.weight || 0,
+      height: profile.height || 0,
+      gender: profile.gender || '',
+      country: profile.country || '',
+      goal: profile.goal || '',
+      activity_level: profile.activity_level || '',
+      dislikes: profile.dislikes || []
+    });
+  };
+
+  // Update a single field
+  const updateField = (field: keyof CreateProfilePayload, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    // Clear field error
+    if (formErrors[field]) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  // Validate form
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.name?.trim()) errors.name = 'El nombre es requerido';
+    if (!formData.last_name?.trim()) errors.last_name = 'El apellido es requerido';
+    if (!formData.age || formData.age < 13 || formData.age > 120) {
+      errors.age = 'La edad debe estar entre 13 y 120 años';
+    }
+    if (!formData.weight || formData.weight < 30 || formData.weight > 300) {
+      errors.weight = 'El peso debe estar entre 30 y 300 kg';
+    }
+    if (!formData.height || formData.height < 100 || formData.height > 250) {
+      errors.height = 'La estatura debe estar entre 100 y 250 cm';
+    }
+    if (!formData.gender) errors.gender = 'Selecciona tu sexo';
+    if (!formData.country?.trim()) errors.country = 'El país es requerido';
+    if (!formData.goal) errors.goal = 'Selecciona tu objetivo';
+    if (!formData.activity_level) errors.activity_level = 'Selecciona tu nivel de actividad';
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  // Toggle edit mode
+  const handleEditToggle = () => {
+    initializeFormData();
+    setIsEditing(true);
+  };
+
+  // Cancel editing
+  const handleCancel = () => {
+    setIsEditing(false);
+    setFormErrors({});
+    initializeFormData();
+  };
+
+  // Save changes
+  const handleSave = async () => {
+    if (!validateForm()) return;
+
+    try {
+      setIsSaving(true);
+      setError(null);
+      const updatedProfile = await updateProfile(formData);
+      setProfile(updatedProfile);
+      setIsEditing(false);
+      setShowSuccess(true);
+      setTimeout(() => setShowSuccess(false), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al guardar cambios');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   // Loading state
@@ -91,6 +193,65 @@ export default function ProfileView({ user }: ProfileViewProps) {
           <p className="text-gray-600 mt-2">Gestiona tu información personal</p>
         </motion.div>
 
+        {/* Action Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="flex justify-end gap-3 mb-4"
+        >
+          {!isEditing ? (
+            <Button
+              onClick={handleEditToggle}
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20"
+            >
+              <Pencil className="w-4 h-4 mr-2" />
+              Editar perfil
+            </Button>
+          ) : (
+            <>
+              <Button
+                onClick={handleCancel}
+                variant="outline"
+                disabled={isSaving}
+                className="border-2"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20"
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Guardando...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4 mr-2" />
+                    Guardar cambios
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+        </motion.div>
+
+        {/* Success Banner */}
+        {showSuccess && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-green-50 border-2 border-green-200 text-green-700 px-6 py-4 rounded-xl mb-4 flex items-center gap-3"
+          >
+            <CheckCircle className="w-5 h-5" />
+            <span className="font-medium">Perfil actualizado exitosamente</span>
+          </motion.div>
+        )}
+
         {/* Avatar Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -125,29 +286,181 @@ export default function ProfileView({ user }: ProfileViewProps) {
               title="Información Personal"
               icon={UserIcon}
             >
-              <div className="space-y-3">
-                {profile.name && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Nombre:</span>
-                    <span className="font-semibold text-gray-800">{profile.name}</span>
+              {!isEditing ? (
+                <div className="space-y-3">
+                  {profile.name && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Nombre:</span>
+                      <span className="font-semibold text-gray-800">{profile.name}</span>
+                    </div>
+                  )}
+                  {profile.last_name && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Apellido:</span>
+                      <span className="font-semibold text-gray-800">{profile.last_name}</span>
+                    </div>
+                  )}
+                  {profile.country && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">País:</span>
+                      <span className="font-semibold text-gray-800 flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-green-600" />
+                        {profile.country}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nombre</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={formData.name || ''}
+                      onChange={(e) => updateField('name', e.target.value)}
+                      className={`h-11 ${formErrors.name ? 'border-red-500' : ''}`}
+                      disabled={isSaving}
+                    />
+                    {formErrors.name && (
+                      <p className="text-xs text-red-500">{formErrors.name}</p>
+                    )}
                   </div>
-                )}
-                {profile.last_name && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Apellido:</span>
-                    <span className="font-semibold text-gray-800">{profile.last_name}</span>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Apellido</Label>
+                    <Input
+                      id="last_name"
+                      type="text"
+                      value={formData.last_name || ''}
+                      onChange={(e) => updateField('last_name', e.target.value)}
+                      className={`h-11 ${formErrors.last_name ? 'border-red-500' : ''}`}
+                      disabled={isSaving}
+                    />
+                    {formErrors.last_name && (
+                      <p className="text-xs text-red-500">{formErrors.last_name}</p>
+                    )}
                   </div>
-                )}
-                {profile.country && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">País:</span>
-                    <span className="font-semibold text-gray-800 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-green-600" />
-                      {profile.country}
-                    </span>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="country">País</Label>
+                    <Input
+                      id="country"
+                      type="text"
+                      value={formData.country || ''}
+                      onChange={(e) => updateField('country', e.target.value)}
+                      className={`h-11 ${formErrors.country ? 'border-red-500' : ''}`}
+                      disabled={isSaving}
+                    />
+                    {formErrors.country && (
+                      <p className="text-xs text-red-500">{formErrors.country}</p>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              )}
+            </ProfileInfoCard>
+          </motion.div>
+
+          {/* Physical Data Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <ProfileInfoCard title="Datos Físicos" icon={Activity}>
+              {!isEditing ? (
+                <div className="space-y-3">
+                  {profile.age && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Edad:</span>
+                      <span className="font-semibold text-gray-800">{profile.age} años</span>
+                    </div>
+                  )}
+                  {profile.weight && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Peso:</span>
+                      <span className="font-semibold text-gray-800">{profile.weight} kg</span>
+                    </div>
+                  )}
+                  {profile.height && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Estatura:</span>
+                      <span className="font-semibold text-gray-800">{profile.height} cm</span>
+                    </div>
+                  )}
+                  {profile.gender && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Sexo:</span>
+                      <span className="font-semibold text-gray-800 capitalize">
+                        {profile.gender}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="age">Edad</Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      value={formData.age || ''}
+                      onChange={(e) => updateField('age', parseFloat(e.target.value) || 0)}
+                      className={`h-11 ${formErrors.age ? 'border-red-500' : ''}`}
+                      disabled={isSaving}
+                    />
+                    {formErrors.age && <p className="text-xs text-red-500">{formErrors.age}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="weight">Peso (kg)</Label>
+                    <Input
+                      id="weight"
+                      type="number"
+                      value={formData.weight || ''}
+                      onChange={(e) => updateField('weight', parseFloat(e.target.value) || 0)}
+                      className={`h-11 ${formErrors.weight ? 'border-red-500' : ''}`}
+                      disabled={isSaving}
+                    />
+                    {formErrors.weight && <p className="text-xs text-red-500">{formErrors.weight}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="height">Estatura (cm)</Label>
+                    <Input
+                      id="height"
+                      type="number"
+                      value={formData.height || ''}
+                      onChange={(e) => updateField('height', parseFloat(e.target.value) || 0)}
+                      className={`h-11 ${formErrors.height ? 'border-red-500' : ''}`}
+                      disabled={isSaving}
+                    />
+                    {formErrors.height && <p className="text-xs text-red-500">{formErrors.height}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Sexo</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {['masculino', 'femenino'].map((sex) => (
+                        <button
+                          key={sex}
+                          type="button"
+                          onClick={() => updateField('gender', sex)}
+                          disabled={isSaving}
+                          className={`p-3 rounded-xl border-2 transition-all ${
+                            formData.gender === sex
+                              ? 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <span className="capitalize font-medium">{sex}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {formErrors.gender && <p className="text-xs text-red-500">{formErrors.gender}</p>}
+                  </div>
+                </div>
+              )}
             </ProfileInfoCard>
           </motion.div>
 
@@ -161,35 +474,122 @@ export default function ProfileView({ user }: ProfileViewProps) {
               title="Objetivos de Fitness"
               icon={Target}
             >
-              <div className="space-y-4">
-                {profile.goal && (
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Objetivo:</span>
-                    <span className="font-semibold text-gray-800">
-                      {GOAL_LABELS[profile.goal] || profile.goal}
-                    </span>
-                  </div>
-                )}
-                {profile.calories && (
-                  <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-100">
-                    <div className="text-center">
-                      <div className="flex items-center justify-center gap-2 text-gray-600 text-sm mb-1">
-                        <Flame className="w-4 h-4 text-orange-500" />
-                        <span>Calorías diarias</span>
-                      </div>
-                      <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                        {profile.calories.toLocaleString()}
-                      </div>
-                      <div className="text-gray-500 text-sm mt-1">kcal/día</div>
+              {!isEditing ? (
+                <div className="space-y-4">
+                  {profile.goal && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Objetivo:</span>
+                      <span className="font-semibold text-gray-800">
+                        {GOAL_LABELS[profile.goal] || profile.goal}
+                      </span>
                     </div>
+                  )}
+                  {profile.calories && (
+                    <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-100">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 text-gray-600 text-sm mb-1">
+                          <Flame className="w-4 h-4 text-orange-500" />
+                          <span>Calorías diarias</span>
+                        </div>
+                        <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                          {profile.calories.toLocaleString()}
+                        </div>
+                        <div className="text-gray-500 text-sm mt-1">kcal/día</div>
+                      </div>
+                    </div>
+                  )}
+                  {profile.activity_level && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">Actividad:</span>
+                      <span className="font-semibold text-gray-800">
+                        {ACTIVITY_LABELS[profile.activity_level] || profile.activity_level}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Objetivo</Label>
+                    <div className="space-y-2">
+                      {[
+                        { id: 'perder_peso', label: 'Perder peso' },
+                        { id: 'mantener_peso', label: 'Mantener peso' },
+                        { id: 'ganar_musculo', label: 'Ganar músculo' }
+                      ].map((objetivo) => (
+                        <button
+                          key={objetivo.id}
+                          type="button"
+                          onClick={() => updateField('goal', objetivo.id)}
+                          disabled={isSaving}
+                          className={`w-full p-3 rounded-xl border-2 transition-all text-left ${
+                            formData.goal === objetivo.id
+                              ? 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold">{objetivo.label}</span>
+                            {formData.goal === objetivo.id && (
+                              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path d="M5 13l4 4L19 7"></path>
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    {formErrors.goal && <p className="text-xs text-red-500">{formErrors.goal}</p>}
                   </div>
-                )}
-              </div>
+
+                  <div className="space-y-2">
+                    <Label>Nivel de actividad</Label>
+                    <div className="space-y-2">
+                      {[
+                        { id: 'sedentario', label: 'Sedentario', desc: 'Poco o ningún ejercicio' },
+                        { id: 'ligero', label: 'Ligero', desc: 'Ejercicio ligero 1-3 días/semana' },
+                        { id: 'moderado', label: 'Moderado', desc: 'Ejercicio moderado 3-5 días/semana' },
+                        { id: 'alto', label: 'Alto', desc: 'Ejercicio intenso 6-7 días/semana' },
+                        { id: 'muy_alto', label: 'Muy alto', desc: 'Entrenamiento intenso diario' }
+                      ].map((actividad) => (
+                        <button
+                          key={actividad.id}
+                          type="button"
+                          onClick={() => updateField('activity_level', actividad.id)}
+                          disabled={isSaving}
+                          className={`w-full p-3 rounded-xl border-2 transition-all text-left ${
+                            formData.activity_level === actividad.id
+                              ? 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-semibold text-sm">{actividad.label}</div>
+                              <div className="text-xs text-gray-600">{actividad.desc}</div>
+                            </div>
+                            {formData.activity_level === actividad.id && (
+                              <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+                                <svg className="w-3 h-3 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path d="M5 13l4 4L19 7"></path>
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    {formErrors.activity_level && <p className="text-xs text-red-500">{formErrors.activity_level}</p>}
+                  </div>
+                </div>
+              )}
             </ProfileInfoCard>
           </motion.div>
 
           {/* Preferences Card */}
-          {profile.dislikes && profile.dislikes.length > 0 && (
+          {((profile.dislikes && profile.dislikes.length > 0) || isEditing) && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -199,19 +599,68 @@ export default function ProfileView({ user }: ProfileViewProps) {
                 title="Preferencias Alimenticias"
                 icon={UtensilsCrossed}
               >
-                <div>
-                  <p className="text-gray-600 text-sm mb-3">No me gusta:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.dislikes.map((item, index) => (
-                      <span
-                        key={index}
-                        className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm border border-red-100"
-                      >
-                        {item}
-                      </span>
-                    ))}
+                {!isEditing ? (
+                  <div>
+                    <p className="text-gray-600 text-sm mb-3">No me gusta:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.dislikes?.map((item, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm border border-red-100"
+                        >
+                          {item}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    <Label>No me gusta (opcional)</Label>
+                    <p className="text-xs text-gray-500">Agrega alimentos que prefieres evitar</p>
+
+                    {formData.dislikes && formData.dislikes.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {formData.dislikes.map((item, index) => (
+                          <span
+                            key={index}
+                            className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm border border-red-100 flex items-center gap-2"
+                          >
+                            {item}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newDislikes = formData.dislikes?.filter((_, i) => i !== index);
+                                updateField('dislikes', newDislikes || []);
+                              }}
+                              disabled={isSaving}
+                              className="hover:text-red-900"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <Input
+                      placeholder="Ej: Brócoli, pescado..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const value = e.currentTarget.value.trim();
+                          if (value) {
+                            const newDislikes = [...(formData.dislikes || []), value];
+                            updateField('dislikes', newDislikes);
+                            e.currentTarget.value = '';
+                          }
+                        }
+                      }}
+                      disabled={isSaving}
+                      className="h-11"
+                    />
+                    <p className="text-xs text-gray-500">Presiona Enter para agregar</p>
+                  </div>
+                )}
               </ProfileInfoCard>
             </motion.div>
           )}

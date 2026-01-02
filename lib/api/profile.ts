@@ -30,10 +30,15 @@ export interface ProfileResponse {
     id: string;
     name?: string;
     last_name?: string;
+    age?: number;
+    weight?: number;
+    height?: number;
+    gender?: string;
+    country?: string;
     goal?: string;
+    activity_level?: string;
     calories?: number;
     dislikes?: string[];
-    country?: string;
     avatar_url?: string;
 }
 
