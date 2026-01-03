@@ -12,6 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { COUNTRIES } from '@/lib/constants/countries';
+import {
   User as UserIcon,
   Target,
   MapPin,
@@ -409,14 +417,22 @@ export default function ProfileView({ user }: ProfileViewProps) {
 
                   <div className="space-y-2">
                     <Label htmlFor="country">País</Label>
-                    <Input
-                      id="country"
-                      type="text"
+                    <Select
                       value={formData.country || ''}
-                      onChange={(e) => updateField('country', e.target.value)}
-                      className={`h-11 ${formErrors.country ? 'border-red-500' : ''}`}
+                      onValueChange={(value) => updateField('country', value)}
                       disabled={isSaving}
-                    />
+                    >
+                      <SelectTrigger className={`h-11 ${formErrors.country ? 'border-red-500' : ''}`}>
+                        <SelectValue placeholder="Selecciona tu país" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {COUNTRIES.map((country) => (
+                          <SelectItem key={country} value={country}>
+                            {country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     {formErrors.country && (
                       <p className="text-xs text-red-500">{formErrors.country}</p>
                     )}
