@@ -9,9 +9,14 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { ChefHat, Sparkles, Eye, EyeOff } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
+import { createProfile } from "@/lib/api/profile";
 
 export default function Register() {
     const router = useRouter();
+
+    // REGISTRO HABILITADO PARA PRUEBAS
+    const REGISTRATION_ENABLED = true;
+
     const [step, setStep] = useState<'register' | 'verify'>('register');
 
     // Registro
@@ -58,8 +63,25 @@ export default function Register() {
             setTimeout(async () => {
                 try {
                     await authClient.login(email, password);
-                    router.push("/onboarding");
+
+                    // Pequeño delay para asegurar que el token esté guardado
+                    await new Promise(resolve => setTimeout(resolve, 500));
+
+                    // Crear perfil vacío en el backend
+                    console.log('Intentando crear perfil automáticamente...');
+                    try {
+                        const profile = await createProfile({
+                            name: name || undefined,
+                        });
+                        console.log('✅ Perfil creado exitosamente:', profile);
+                    } catch (profileErr) {
+                        console.error('❌ Error al crear perfil automáticamente:', profileErr);
+                        // Si falla, se manejará en ProfileView cuando el usuario lo edite
+                    }
+
+                    router.push("/"); // Redirigir al dashboard
                 } catch (err) {
+                    console.error('Error en auto-login:', err);
                     // Si el auto-login falla, redirigir a login manual
                     router.push("/login");
                 }
@@ -118,7 +140,36 @@ export default function Register() {
                     </CardHeader>
 
                     <CardContent>
-                        {step === 'register' ? (
+                        {!REGISTRATION_ENABLED ? (
+                            /* Mensaje de registro deshabilitado */
+                            <div className="flex flex-col items-center gap-6 py-8">
+                                <div className="w-20 h-20 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full flex items-center justify-center">
+                                    <Sparkles className="w-10 h-10 text-orange-500" />
+                                </div>
+
+                                <div className="text-center space-y-3">
+                                    <h3 className="text-2xl font-bold text-gray-800">
+                                        Estamos preparando algo especial
+                                    </h3>
+                                    <p className="text-gray-600 text-sm max-w-sm">
+                                        Menuum está en desarrollo. El registro estará disponible muy pronto.
+                                    </p>
+                                </div>
+
+                                <div className="w-full space-y-3">
+                                    <p className="text-sm text-gray-500 text-center">
+                                        Mientras tanto, puedes conocer más sobre nosotros
+                                    </p>
+                                    <Button
+                                        onClick={() => router.push("/login")}
+                                        variant="outline"
+                                        className="w-full py-6 text-lg rounded-xl border-2 border-green-500 text-green-600 hover:bg-green-50 font-semibold transition-all"
+                                    >
+                                        ¿Ya tienes cuenta? Inicia sesión
+                                    </Button>
+                                </div>
+                            </div>
+                        ) : step === 'register' ? (
                             <form onSubmit={handleRegister} className="flex flex-col gap-4">
                                 <div className="flex flex-col gap-2">
                                     <Label htmlFor="name" className="text-gray-700 font-medium">

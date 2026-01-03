@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getProfile, updateProfile, CreateProfilePayload, type ProfileResponse } from '@/lib/api/profile';
+import { getProfile, updateProfile, createProfile, CreateProfilePayload, type ProfileResponse } from '@/lib/api/profile';
 import { User } from '@/lib/auth/client';
 import AvatarUpload from '@/components/profile/AvatarUpload';
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
@@ -53,7 +53,17 @@ export default function ProfileView({ user }: ProfileViewProps) {
       const data = await getProfile();
       setProfile(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar perfil');
+      // Si el perfil no existe (404), crear un perfil vacío
+      if (err instanceof Error && (err.message.includes('404') || err.message.includes('no encontró'))) {
+        // Perfil no existe, mostrar estado vacío
+        setProfile({
+          id: '', // Temporal, indica que necesita crearse
+          name: user.name || undefined,
+          // Resto vacío - usuario lo completará
+        } as ProfileResponse);
+      } else {
+        setError(err instanceof Error ? err.message : 'Error al cargar perfil');
+      }
     } finally {
       setLoading(false);
     }
@@ -93,25 +103,34 @@ export default function ProfileView({ user }: ProfileViewProps) {
     }
   };
 
-  // Validate form
+  // Validate form - Campos opcionales, solo validar formato
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
 
-    if (!formData.name?.trim()) errors.name = 'El nombre es requerido';
-    if (!formData.last_name?.trim()) errors.last_name = 'El apellido es requerido';
-    if (!formData.age || formData.age < 13 || formData.age > 120) {
+    // Solo validar si el campo tiene valor (no requerir campos)
+    if (formData.name && !formData.name.trim()) {
+      errors.name = 'El nombre no puede estar vacío';
+    }
+
+    if (formData.last_name && !formData.last_name.trim()) {
+      errors.last_name = 'El apellido no puede estar vacío';
+    }
+
+    if (formData.age && (formData.age < 13 || formData.age > 120)) {
       errors.age = 'La edad debe estar entre 13 y 120 años';
     }
-    if (!formData.weight || formData.weight < 30 || formData.weight > 300) {
+
+    if (formData.weight && (formData.weight < 30 || formData.weight > 300)) {
       errors.weight = 'El peso debe estar entre 30 y 300 kg';
     }
-    if (!formData.height || formData.height < 100 || formData.height > 250) {
+
+    if (formData.height && (formData.height < 100 || formData.height > 250)) {
       errors.height = 'La estatura debe estar entre 100 y 250 cm';
     }
-    if (!formData.gender) errors.gender = 'Selecciona tu sexo';
-    if (!formData.country?.trim()) errors.country = 'El país es requerido';
-    if (!formData.goal) errors.goal = 'Selecciona tu objetivo';
-    if (!formData.activity_level) errors.activity_level = 'Selecciona tu nivel de actividad';
+
+    if (formData.country && !formData.country.trim()) {
+      errors.country = 'El país no puede estar vacío';
+    }
 
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -137,7 +156,18 @@ export default function ProfileView({ user }: ProfileViewProps) {
     try {
       setIsSaving(true);
       setError(null);
-      const updatedProfile = await updateProfile(formData);
+
+      let updatedProfile: ProfileResponse;
+
+      // Si el perfil no tiene ID real, crear en lugar de actualizar
+      if (!profile?.id || profile.id === '') {
+        // Crear con los datos que el usuario haya llenado (todos opcionales)
+        updatedProfile = await createProfile(formData);
+      } else {
+        // Perfil ya existe, actualizar
+        updatedProfile = await updateProfile(formData);
+      }
+
       setProfile(updatedProfile);
       setIsEditing(false);
       setShowSuccess(true);
@@ -251,6 +281,41 @@ export default function ProfileView({ user }: ProfileViewProps) {
             <span className="font-medium">Perfil actualizado exitosamente</span>
           </motion.div>
         )}
+
+        {/* Complete Profile Banner */}
+        {!profile.name || !profile.age || !profile.goal || !profile.activity_level ? (
+          !isEditing && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-r from-blue-50 to-emerald-50 border-2 border-blue-200 px-6 py-4 rounded-xl mb-4"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-emerald-500 flex items-center justify-center">
+                    <UserIcon className="w-5 h-5 text-white" />
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-800 mb-1">
+                    Complétanos un poco más sobre ti
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Ayúdanos a conocerte mejor para generar menús personalizados que se adapten a tus objetivos y preferencias
+                  </p>
+                  <Button
+                    onClick={handleEditToggle}
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-500 to-emerald-600 hover:from-blue-600 hover:to-emerald-700"
+                  >
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Completar perfil
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          )
+        ) : null}
 
         {/* Avatar Section */}
         <motion.div

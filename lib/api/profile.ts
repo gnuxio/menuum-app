@@ -9,17 +9,18 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.menuum.com';
 
 /**
  * Profile data structure matching the Go backend CreateProfileRequest
+ * Todos los campos son opcionales excepto los que el backend requiera
  */
 export interface CreateProfilePayload {
-    name: string;
-    last_name: string;
-    age: number;
-    weight: number;
-    height: number;
-    gender: string;
-    country: string;
-    goal: string;
-    activity_level: string;
+    name?: string;
+    last_name?: string;
+    age?: number;
+    weight?: number;
+    height?: number;
+    gender?: string;
+    country?: string;
+    goal?: string;
+    activity_level?: string;
     dislikes?: string[];
 }
 
