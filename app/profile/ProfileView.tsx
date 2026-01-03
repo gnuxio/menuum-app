@@ -199,7 +199,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
           <p className="text-red-600 mb-4">{error || 'No se encontró el perfil'}</p>
           <button
             onClick={loadProfile}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
           >
             Reintentar
           </button>
@@ -512,7 +512,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                           type="button"
                           onClick={() => updateField('gender', sex)}
                           disabled={isSaving}
-                          className={`p-3 rounded-xl border-2 transition-all ${
+                          className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
                             formData.gender === sex
                               ? 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
                               : 'border-gray-200 bg-white hover:border-gray-300'
@@ -587,7 +587,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                           type="button"
                           onClick={() => updateField('goal', objetivo.id)}
                           disabled={isSaving}
-                          className={`w-full p-3 rounded-xl border-2 transition-all text-left ${
+                          className={`w-full p-3 rounded-xl border-2 transition-all text-left cursor-pointer ${
                             formData.goal === objetivo.id
                               ? 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
                               : 'border-gray-200 bg-white hover:border-gray-300'
@@ -624,7 +624,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                           type="button"
                           onClick={() => updateField('activity_level', actividad.id)}
                           disabled={isSaving}
-                          className={`w-full p-3 rounded-xl border-2 transition-all text-left ${
+                          className={`w-full p-3 rounded-xl border-2 transition-all text-left cursor-pointer ${
                             formData.activity_level === actividad.id
                               ? 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
                               : 'border-gray-200 bg-white hover:border-gray-300'
@@ -698,7 +698,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                                 updateField('dislikes', newDislikes || []);
                               }}
                               disabled={isSaving}
-                              className="hover:text-red-900"
+                              className="hover:text-red-900 cursor-pointer"
                             >
                               <X className="w-3 h-3" />
                             </button>

@@ -83,7 +83,7 @@ export default function DayCard({ day, index, menuId, onRegenerateMeal, regenera
                   {/* Clickeable header */}
                   <button
                     onClick={() => toggleMeal(mealIndex)}
-                    className="w-full p-4 md:p-5 flex items-center justify-between gap-4 text-left hover:bg-white/50 transition-colors pr-14"
+                    className="w-full p-4 md:p-5 flex items-center justify-between gap-4 text-left hover:bg-white/50 transition-colors pr-14 cursor-pointer"
                     disabled={isRegenerating}
                   >
                     <div className="flex-1 min-w-0">
