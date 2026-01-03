@@ -14,8 +14,7 @@ import { createProfile } from "@/lib/api/profile";
 export default function Register() {
     const router = useRouter();
 
-    // REGISTRO HABILITADO PARA PRUEBAS
-    const REGISTRATION_ENABLED = true;
+    const REGISTRATION_ENABLED = false;
 
     const [step, setStep] = useState<'register' | 'verify'>('register');
 
