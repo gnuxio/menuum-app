@@ -53,7 +53,6 @@ export async function createProfile(payload: CreateProfilePayload): Promise<Prof
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // NO Authorization header - las cookies se envían automáticamente
             },
             body: JSON.stringify(payload),
         });
@@ -82,7 +81,6 @@ export async function getProfile(): Promise<ProfileResponse> {
     try {
         const response = await fetchWithAuth(`${API_URL}/api/v1/profile`, {
             method: 'GET',
-            // NO Authorization header - las cookies se envían automáticamente
         });
 
         const result = await response.json();
@@ -92,7 +90,6 @@ export async function getProfile(): Promise<ProfileResponse> {
             throw new Error(errorMessage);
         }
 
-        // Backend envuelve la respuesta en { data: ... }
         return result.data;
     } catch (error) {
         if (error instanceof Error) {
@@ -108,10 +105,9 @@ export async function getProfile(): Promise<ProfileResponse> {
 export async function updateProfile(payload: Partial<CreateProfilePayload>): Promise<ProfileResponse> {
     try {
         const response = await fetchWithAuth(`${API_URL}/api/v1/profile`, {
-            method: 'PUT',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // NO Authorization header - las cookies se envían automáticamente
             },
             body: JSON.stringify(payload),
         });
@@ -123,7 +119,6 @@ export async function updateProfile(payload: Partial<CreateProfilePayload>): Pro
             throw new Error(errorMessage);
         }
 
-        // Backend envuelve la respuesta en { data: ... }
         return result.data;
     } catch (error) {
         if (error instanceof Error) {
@@ -143,7 +138,6 @@ export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> 
 
         const response = await fetchWithAuth(`${API_URL}/api/v1/profile/avatar`, {
             method: 'POST',
-            // Don't set Content-Type header - browser sets it with boundary for multipart
             body: formData,
         });
 
@@ -154,7 +148,6 @@ export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> 
             throw new Error(errorMessage);
         }
 
-        // Backend envuelve la respuesta en { data: { avatar_url: "..." } }
         return result.data;
     } catch (error) {
         if (error instanceof Error) {

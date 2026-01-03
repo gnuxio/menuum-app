@@ -33,6 +33,7 @@ import {
   CheckCircle,
   Activity
 } from 'lucide-react';
+import { GENDER_VALUES, GENDER_LABELS } from '@/lib/constants/gender';
 
 interface ProfileViewProps {
   user: User;
@@ -205,12 +206,12 @@ export default function ProfileView({ user }: ProfileViewProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error || 'No se encontró el perfil'}</p>
-          <button
+          <Button
             onClick={loadProfile}
-            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors cursor-pointer"
+            className="bg-green-600 hover:bg-green-700 cursor-pointer"
           >
             Reintentar
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -241,7 +242,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
           {!isEditing ? (
             <Button
               onClick={handleEditToggle}
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20 cursor-pointer"
             >
               <Pencil className="w-4 h-4 mr-2" />
               Editar perfil
@@ -252,7 +253,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                 onClick={handleCancel}
                 variant="outline"
                 disabled={isSaving}
-                className="border-2"
+                className="border-2 cursor-pointer"
               >
                 <X className="w-4 h-4 mr-2" />
                 Cancelar
@@ -260,7 +261,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
               <Button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/20 cursor-pointer"
               >
                 {isSaving ? (
                   <>
@@ -314,7 +315,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                   <Button
                     onClick={handleEditToggle}
                     size="sm"
-                    className="bg-gradient-to-r from-blue-500 to-emerald-600 hover:from-blue-600 hover:to-emerald-700"
+                    className="bg-gradient-to-r from-blue-500 to-emerald-600 hover:from-blue-600 hover:to-emerald-700 cursor-pointer"
                   >
                     <Pencil className="w-4 h-4 mr-2" />
                     Completar perfil
@@ -361,27 +362,31 @@ export default function ProfileView({ user }: ProfileViewProps) {
             >
               {!isEditing ? (
                 <div className="space-y-3">
-                  {profile.name && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Nombre:</span>
-                      <span className="font-semibold text-gray-800">{profile.name}</span>
-                    </div>
-                  )}
-                  {profile.last_name && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Apellido:</span>
-                      <span className="font-semibold text-gray-800">{profile.last_name}</span>
-                    </div>
-                  )}
-                  {profile.country && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">País:</span>
-                      <span className="font-semibold text-gray-800 flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-green-600" />
-                        {profile.country}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Nombre:</span>
+                    <span className={`font-semibold ${profile.name ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.name || 'No especificado'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Apellido:</span>
+                    <span className={`font-semibold ${profile.last_name ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.last_name || 'No especificado'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">País:</span>
+                    <span className={`font-semibold ${profile.country ? 'text-gray-800' : 'text-gray-400 italic'} flex items-center gap-2`}>
+                      {profile.country ? (
+                        <>
+                          <MapPin className="w-4 h-4 text-green-600" />
+                          {profile.country}
+                        </>
+                      ) : (
+                        'No especificado'
+                      )}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -451,32 +456,30 @@ export default function ProfileView({ user }: ProfileViewProps) {
             <ProfileInfoCard title="Datos Físicos" icon={Activity}>
               {!isEditing ? (
                 <div className="space-y-3">
-                  {profile.age && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Edad:</span>
-                      <span className="font-semibold text-gray-800">{profile.age} años</span>
-                    </div>
-                  )}
-                  {profile.weight && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Peso:</span>
-                      <span className="font-semibold text-gray-800">{profile.weight} kg</span>
-                    </div>
-                  )}
-                  {profile.height && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Estatura:</span>
-                      <span className="font-semibold text-gray-800">{profile.height} cm</span>
-                    </div>
-                  )}
-                  {profile.gender && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Sexo:</span>
-                      <span className="font-semibold text-gray-800 capitalize">
-                        {profile.gender}
-                      </span>
-                    </div>
-                  )}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Edad:</span>
+                    <span className={`font-semibold ${profile.age ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.age ? `${profile.age} años` : 'No especificado'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Peso:</span>
+                    <span className={`font-semibold ${profile.weight ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.weight ? `${profile.weight} kg` : 'No especificado'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Estatura:</span>
+                    <span className={`font-semibold ${profile.height ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.height ? `${profile.height} cm` : 'No especificado'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Sexo:</span>
+                    <span className={`font-semibold ${profile.gender ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.gender ? (GENDER_LABELS[profile.gender] || profile.gender) : 'No especificado'}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -522,19 +525,19 @@ export default function ProfileView({ user }: ProfileViewProps) {
                   <div className="space-y-2">
                     <Label>Sexo</Label>
                     <div className="grid grid-cols-2 gap-3">
-                      {['masculino', 'femenino'].map((sex) => (
+                      {Object.entries(GENDER_VALUES).map(([key, value]) => (
                         <button
-                          key={sex}
+                          key={value}
                           type="button"
-                          onClick={() => updateField('gender', sex)}
+                          onClick={() => updateField('gender', value)}
                           disabled={isSaving}
                           className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
-                            formData.gender === sex
+                            formData.gender === value
                               ? 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
                               : 'border-gray-200 bg-white hover:border-gray-300'
                           }`}
                         >
-                          <span className="capitalize font-medium">{sex}</span>
+                          <span className="font-medium text-sm">{GENDER_LABELS[value]}</span>
                         </button>
                       ))}
                     </div>
@@ -557,15 +560,13 @@ export default function ProfileView({ user }: ProfileViewProps) {
             >
               {!isEditing ? (
                 <div className="space-y-4">
-                  {profile.goal && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Objetivo:</span>
-                      <span className="font-semibold text-gray-800">
-                        {GOAL_LABELS[profile.goal] || profile.goal}
-                      </span>
-                    </div>
-                  )}
-                  {profile.calories && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Objetivo:</span>
+                    <span className={`font-semibold ${profile.goal ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.goal ? (GOAL_LABELS[profile.goal] || profile.goal) : 'No especificado'}
+                    </span>
+                  </div>
+                  {profile.calories ? (
                     <div className="mt-4 p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border-2 border-green-100">
                       <div className="text-center">
                         <div className="flex items-center justify-center gap-2 text-gray-600 text-sm mb-1">
@@ -578,15 +579,26 @@ export default function ProfileView({ user }: ProfileViewProps) {
                         <div className="text-gray-500 text-sm mt-1">kcal/día</div>
                       </div>
                     </div>
-                  )}
-                  {profile.activity_level && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Actividad:</span>
-                      <span className="font-semibold text-gray-800">
-                        {ACTIVITY_LABELS[profile.activity_level] || profile.activity_level}
-                      </span>
+                  ) : (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-xl border-2 border-gray-200">
+                      <div className="text-center">
+                        <div className="flex items-center justify-center gap-2 text-gray-400 text-sm mb-1">
+                          <Flame className="w-4 h-4" />
+                          <span>Calorías diarias</span>
+                        </div>
+                        <div className="text-2xl font-semibold text-gray-400 italic">
+                          No calculado
+                        </div>
+                        <div className="text-gray-400 text-xs mt-1">Completa tu perfil para ver tus calorías</div>
+                      </div>
                     </div>
                   )}
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Actividad:</span>
+                    <span className={`font-semibold ${profile.activity_level ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.activity_level ? (ACTIVITY_LABELS[profile.activity_level] || profile.activity_level) : 'No especificado'}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -670,21 +682,21 @@ export default function ProfileView({ user }: ProfileViewProps) {
           </motion.div>
 
           {/* Preferences Card */}
-          {((profile.dislikes && profile.dislikes.length > 0) || isEditing) && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            <ProfileInfoCard
+              title="Preferencias Alimenticias"
+              icon={UtensilsCrossed}
             >
-              <ProfileInfoCard
-                title="Preferencias Alimenticias"
-                icon={UtensilsCrossed}
-              >
-                {!isEditing ? (
-                  <div>
-                    <p className="text-gray-600 text-sm mb-3">No me gusta:</p>
+              {!isEditing ? (
+                <div>
+                  <p className="text-gray-600 text-sm mb-3">No me gusta:</p>
+                  {profile.dislikes && profile.dislikes.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
-                      {profile.dislikes?.map((item, index) => (
+                      {profile.dislikes.map((item, index) => (
                         <span
                           key={index}
                           className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm border border-red-100"
@@ -693,8 +705,11 @@ export default function ProfileView({ user }: ProfileViewProps) {
                         </span>
                       ))}
                     </div>
-                  </div>
-                ) : (
+                  ) : (
+                    <p className="text-gray-400 italic text-sm">No hay restricciones especificadas</p>
+                  )}
+                </div>
+              ) : (
                   <div className="space-y-3">
                     <Label>No me gusta (opcional)</Label>
                     <p className="text-xs text-gray-500">Agrega alimentos que prefieres evitar</p>
@@ -744,7 +759,6 @@ export default function ProfileView({ user }: ProfileViewProps) {
                 )}
               </ProfileInfoCard>
             </motion.div>
-          )}
 
           {/* Security Card */}
           <motion.div

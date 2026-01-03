@@ -92,7 +92,7 @@ export default function ChangePasswordModal() {
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="w-full justify-start gap-3 h-auto py-4 rounded-xl border-2 hover:border-green-500 hover:bg-green-50 transition-all"
+          className="w-full justify-start gap-3 h-auto py-4 rounded-xl border-2 hover:border-green-500 hover:bg-green-50 transition-all cursor-pointer"
         >
           <Lock className="w-5 h-5 text-green-600" />
           <div className="text-left">
@@ -210,13 +210,14 @@ export default function ChangePasswordModal() {
                 variant="outline"
                 onClick={handleClose}
                 disabled={loading}
+                className="cursor-pointer"
               >
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={loading}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 cursor-pointer"
               >
                 {loading ? 'Guardando...' : 'Cambiar contraseña'}
               </Button>
