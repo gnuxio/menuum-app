@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { ChefHat, Sparkles, Eye, EyeOff } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
-import { createProfile } from "@/lib/api/profile";
+import { saveProfile } from "@/lib/api/profile";
 
 export default function Register() {
     const router = useRouter();
@@ -69,7 +69,7 @@ export default function Register() {
                     // Crear perfil vacío en el backend
                     console.log('Intentando crear perfil automáticamente...');
                     try {
-                        const profile = await createProfile({
+                        const profile = await saveProfile({
                             name: name || undefined,
                         });
                         console.log('✅ Perfil creado exitosamente:', profile);

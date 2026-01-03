@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { getProfile, updateProfile, createProfile, CreateProfilePayload, type ProfileResponse } from '@/lib/api/profile';
+import { getProfile, saveProfile, type ProfilePayload, type ProfileResponse } from '@/lib/api/profile';
 import { User } from '@/lib/auth/client';
 import AvatarUpload from '@/components/profile/AvatarUpload';
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
@@ -46,7 +46,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
 
   // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<Partial<CreateProfilePayload>>({});
+  const [formData, setFormData] = useState<Partial<ProfilePayload>>({});
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -100,7 +100,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
   };
 
   // Update a single field
-  const updateField = (field: keyof CreateProfilePayload, value: any) => {
+  const updateField = (field: keyof ProfilePayload, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear field error
     if (formErrors[field]) {
@@ -166,16 +166,8 @@ export default function ProfileView({ user }: ProfileViewProps) {
       setIsSaving(true);
       setError(null);
 
-      let updatedProfile: ProfileResponse;
-
-      // Si el perfil no tiene ID real, crear en lugar de actualizar
-      if (!profile?.id || profile.id === '') {
-        // Crear con los datos que el usuario haya llenado (todos opcionales)
-        updatedProfile = await createProfile(formData);
-      } else {
-        // Perfil ya existe, actualizar
-        updatedProfile = await updateProfile(formData);
-      }
+      // El backend hace upsert automáticamente (crea o actualiza según exista)
+      const updatedProfile = await saveProfile(formData);
 
       setProfile(updatedProfile);
       setIsEditing(false);

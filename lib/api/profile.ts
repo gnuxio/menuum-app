@@ -8,10 +8,10 @@ import { fetchWithAuth } from '@/lib/auth/interceptor';
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.menuum.com';
 
 /**
- * Profile data structure matching the Go backend CreateProfileRequest
- * Todos los campos son opcionales excepto los que el backend requiera
+ * Profile data structure matching the Go backend
+ * Todos los campos son opcionales - el backend hace upsert automático
  */
-export interface CreateProfilePayload {
+export interface ProfilePayload {
     name?: string;
     last_name?: string;
     age?: number;
@@ -44,11 +44,12 @@ export interface ProfileResponse {
 }
 
 /**
- * Create a new profile in the Go backend
+ * Save (create or update) user profile in the Go backend
+ * El backend hace upsert automáticamente - crea si no existe, actualiza si existe
+ * Todos los campos son opcionales, se puede enviar un body vacío
  */
-export async function createProfile(payload: CreateProfilePayload): Promise<ProfileResponse> {
+export async function saveProfile(payload: ProfilePayload = {}): Promise<ProfileResponse> {
     try {
-        // CAMBIO: usar fetchWithAuth que maneja cookies automáticamente
         const response = await fetchWithAuth(`${API_URL}/api/v1/profile`, {
             method: 'POST',
             headers: {
@@ -60,7 +61,7 @@ export async function createProfile(payload: CreateProfilePayload): Promise<Prof
         const result = await response.json();
 
         if (!response.ok) {
-            const errorMessage = result.error?.message || result.message || 'Error al crear el perfil';
+            const errorMessage = result.error?.message || result.message || 'Error al guardar el perfil';
             throw new Error(errorMessage);
         }
 
@@ -70,7 +71,7 @@ export async function createProfile(payload: CreateProfilePayload): Promise<Prof
         if (error instanceof Error) {
             throw error;
         }
-        throw new Error('Error desconocido al crear el perfil');
+        throw new Error('Error desconocido al guardar el perfil');
     }
 }
 
@@ -96,35 +97,6 @@ export async function getProfile(): Promise<ProfileResponse> {
             throw error;
         }
         throw new Error('Error desconocido al obtener el perfil');
-    }
-}
-
-/**
- * Update user profile in the Go backend
- */
-export async function updateProfile(payload: Partial<CreateProfilePayload>): Promise<ProfileResponse> {
-    try {
-        const response = await fetchWithAuth(`${API_URL}/api/v1/profile`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-        });
-
-        const result = await response.json();
-
-        if (!response.ok) {
-            const errorMessage = result.error?.message || result.message || 'Error al actualizar el perfil';
-            throw new Error(errorMessage);
-        }
-
-        return result.data;
-    } catch (error) {
-        if (error instanceof Error) {
-            throw error;
-        }
-        throw new Error('Error desconocido al actualizar el perfil');
     }
 }
 
