@@ -6,10 +6,11 @@ import { getMenuHistory, createMenu } from '@/lib/api/plans';
 import { MenuHistoryItem } from '@/lib/types/plans';
 import { User } from '@/lib/auth/client';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw, UserCircle } from 'lucide-react';
 import PlanCard from '@/components/plans/PlanCard';
 import SearchAndFilters from '@/components/plans/SearchAndFilters';
 import EmptyState from '@/components/plans/EmptyState';
+import IncompleteProfileState from '@/components/plans/IncompleteProfileState';
 
 interface PlansViewProps {
   user: User;
@@ -20,6 +21,7 @@ export default function PlansView({ user }: PlansViewProps) {
   const [filteredPlans, setFilteredPlans] = useState<MenuHistoryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isIncompleteProfile, setIsIncompleteProfile] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Filtros
@@ -65,10 +67,21 @@ export default function PlansView({ user }: PlansViewProps) {
     try {
       setLoading(true);
       setError(null);
+      setIsIncompleteProfile(false);
       const data = await getMenuHistory();
       setPlans(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al cargar planes');
+      const errorMessage = err instanceof Error ? err.message : 'Error al cargar planes';
+
+      // Detectar si es un error de perfil incompleto
+      if (errorMessage.toLowerCase().includes('incomplete') ||
+          errorMessage.toLowerCase().includes('complete your profile')) {
+        setIsIncompleteProfile(true);
+        setError(null);
+      } else {
+        setError(errorMessage);
+        setIsIncompleteProfile(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -130,11 +143,23 @@ export default function PlansView({ user }: PlansViewProps) {
   const handleCreatePlan = async () => {
     try {
       setIsGenerating(true);
+      setError(null);
+      setIsIncompleteProfile(false);
       await createMenu();
       // Recargar inmediatamente para mostrar el plan "processing"
       await loadPlans();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al generar plan');
+      const errorMessage = err instanceof Error ? err.message : 'Error al generar plan';
+
+      // Detectar si es un error de perfil incompleto
+      if (errorMessage.toLowerCase().includes('incomplete') ||
+          errorMessage.toLowerCase().includes('complete your profile')) {
+        setIsIncompleteProfile(true);
+        setError(null);
+      } else {
+        setError(errorMessage);
+        setIsIncompleteProfile(false);
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -148,6 +173,15 @@ export default function PlansView({ user }: PlansViewProps) {
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4" />
           <p className="text-gray-600">Cargando planes...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Incomplete profile state
+  if (isIncompleteProfile && plans.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <IncompleteProfileState />
       </div>
     );
   }
@@ -213,8 +247,40 @@ export default function PlansView({ user }: PlansViewProps) {
               onStatusChange={setSelectedStatus}
             />
 
+            {/* Incomplete profile banner (si hay error de perfil incompleto) */}
+            {isIncompleteProfile && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-blue-50 to-emerald-50 border-2 border-blue-200 px-6 py-4 rounded-xl mb-6"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-emerald-500 flex items-center justify-center">
+                      <UserCircle className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800 mb-1">
+                      Necesitas completar tu perfil
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Para generar nuevos planes de comida personalizados, completa tu perfil con información sobre tus objetivos, edad, peso y nivel de actividad.
+                    </p>
+                    <Button
+                      onClick={() => window.location.href = '/profile'}
+                      size="sm"
+                      className="bg-gradient-to-r from-blue-500 to-emerald-600 hover:from-blue-600 hover:to-emerald-700"
+                    >
+                      Completar perfil
+                    </Button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Error banner (si hay error pero también datos) */}
-            {error && (
+            {error && !isIncompleteProfile && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
