@@ -19,6 +19,7 @@ export interface ProfilePayload {
     goal?: string;
     activity_level?: string;
     dislikes?: string[];
+    calories?: number;
 }
 
 /**
@@ -36,6 +37,7 @@ export interface ProfileResponse {
     goal?: string;
     activity_level?: string;
     calories?: number;
+    calories_manually_set?: boolean;
     dislikes?: string[];
     avatar_url?: string;
 }

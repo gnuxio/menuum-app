@@ -50,6 +50,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isAutomaticCalories, setIsAutomaticCalories] = useState(true);
 
   useEffect(() => {
     loadProfile();
@@ -95,8 +96,13 @@ export default function ProfileView({ user }: ProfileViewProps) {
       country: profile.country?.toLowerCase() || '',
       goal: profile.goal || '',
       activity_level: profile.activity_level || '',
-      dislikes: profile.dislikes || []
+      dislikes: profile.dislikes || [],
+      calories: profile.calories || 0
     });
+    // Usar el campo calories_manually_set del backend para determinar el estado del checkbox
+    // Si calories_manually_set es true → isAutomaticCalories es false (modo manual)
+    // Si calories_manually_set es false/undefined → isAutomaticCalories es true (modo automático)
+    setIsAutomaticCalories(!profile.calories_manually_set);
   };
 
   // Update a single field
@@ -141,6 +147,13 @@ export default function ProfileView({ user }: ProfileViewProps) {
       errors.country = 'El país no puede estar vacío';
     }
 
+    // Validar calorías solo si es manual (checkbox desactivado)
+    if (!isAutomaticCalories && formData.calories) {
+      if (formData.calories < 1200 || formData.calories > 5000) {
+        errors.calories = 'Las calorías deben estar entre 1,200 y 5,000';
+      }
+    }
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -166,8 +179,27 @@ export default function ProfileView({ user }: ProfileViewProps) {
       setIsSaving(true);
       setError(null);
 
+      // Construir payload - solo incluir calories si es manual (checkbox desactivado)
+      const payload: Partial<ProfilePayload> = {
+        name: formData.name,
+        last_name: formData.last_name,
+        age: formData.age,
+        weight: formData.weight,
+        height: formData.height,
+        gender: formData.gender,
+        country: formData.country,
+        goal: formData.goal,
+        activity_level: formData.activity_level,
+        dislikes: formData.dislikes
+      };
+
+      // Solo añadir calories si el checkbox está desactivado (manual)
+      if (!isAutomaticCalories && formData.calories) {
+        payload.calories = formData.calories;
+      }
+
       // El backend hace upsert automáticamente (crea o actualiza según exista)
-      const updatedProfile = await saveProfile(formData);
+      const updatedProfile = await saveProfile(payload);
 
       setProfile(updatedProfile);
       setIsEditing(false);
@@ -657,6 +689,48 @@ export default function ProfileView({ user }: ProfileViewProps) {
                       ))}
                     </div>
                     {formErrors.activity_level && <p className="text-xs text-red-500">{formErrors.activity_level}</p>}
+                  </div>
+
+                  {/* Calories section */}
+                  <div className="space-y-3 pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="auto-calories"
+                        checked={isAutomaticCalories}
+                        onChange={(e) => setIsAutomaticCalories(e.target.checked)}
+                        disabled={isSaving}
+                        className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
+                      />
+                      <Label htmlFor="auto-calories" className="cursor-pointer">
+                        Calcular automáticamente
+                      </Label>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="calories">Calorías diarias</Label>
+                      <div className="relative">
+                        <Input
+                          id="calories"
+                          type="number"
+                          value={formData.calories || ''}
+                          onChange={(e) => updateField('calories', parseFloat(e.target.value) || 0)}
+                          className={`h-11 ${formErrors.calories ? 'border-red-500' : ''} ${isAutomaticCalories ? 'bg-gray-50 text-gray-500' : ''}`}
+                          disabled={isSaving || isAutomaticCalories}
+                          readOnly={isAutomaticCalories}
+                          placeholder={isAutomaticCalories ? 'Se calculará automáticamente' : '2500'}
+                        />
+                        {isAutomaticCalories && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                            kcal
+                          </div>
+                        )}
+                      </div>
+                      {formErrors.calories && <p className="text-xs text-red-500">{formErrors.calories}</p>}
+                      {!isAutomaticCalories && (
+                        <p className="text-xs text-gray-500">Rango válido: 1,200 - 5,000 calorías</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
