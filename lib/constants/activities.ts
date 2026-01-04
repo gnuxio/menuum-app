@@ -17,3 +17,7 @@ export const ACTIVITY_LABELS: Record<string, string> = {
   very_active: 'Alto',
   extremely_active: 'Muy alto',
 };
+
+// Derived types for type safety
+export type ActivityLevel = (typeof ACTIVITIES)[number]['id'];
+export type ActivityOption = (typeof ACTIVITIES)[number];

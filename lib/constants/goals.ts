@@ -17,3 +17,7 @@ export const GOAL_LABELS: Record<string, string> = {
   muscle_gain: 'Ganar músculo',
   general_health: 'Salud general',
 };
+
+// Derived types for type safety
+export type Goal = (typeof GOALS)[number]['id'];
+export type GoalOption = (typeof GOALS)[number];
