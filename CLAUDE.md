@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Menuum is a Next.js 16 application for intelligent meal planning. The app uses Supabase for authentication and a Go backend API for profile and data management, with a multi-step onboarding flow to collect user nutrition preferences and goals.
+Menuum is a Next.js 16 application for intelligent meal planning. The app uses custom Bearer token authentication (localStorage) and a Go backend API for all authentication, profile, and data management, with a multi-step onboarding flow to collect user nutrition preferences and goals.
 
 **Live at:** https://app.menuum.com/
 
