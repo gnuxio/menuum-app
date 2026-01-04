@@ -1,6 +1,7 @@
 import { fetchWithAuth } from '@/lib/auth/interceptor';
 import { COUNTRIES } from '@/lib/constants/countries';
-import { GOALS, ACTIVITIES } from '@/lib/types/profile';
+import { GOALS } from '@/lib/constants/goals';
+import { ACTIVITIES } from '@/lib/constants/activities';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.menuum.com';
 

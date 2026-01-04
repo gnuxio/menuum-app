@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Menuum is a Next.js 16 application for intelligent meal planning. The app uses custom Bearer token authentication (localStorage) and a Go backend API for all authentication, profile, and data management, with a multi-step onboarding flow to collect user nutrition preferences and goals.
+Menuum is a Next.js 16 application for intelligent meal planning. The app uses custom Bearer token authentication (localStorage) and a Go backend API for all authentication, profile, and data management.
 
 **Live at:** https://app.menuum.com/
 
@@ -51,14 +51,14 @@ npm run lint
 
 - `app/` - Next.js App Router pages and layouts
   - `(auth)/` - Route group for authentication pages (login, register)
-  - `onboarding/` - Multi-step onboarding flow
   - `page.tsx` - Root page (dashboard) with server-side auth check
   - `layout.tsx` - Root layout with Geist fonts and LayoutWrapper
   - `globals.css` - Tailwind v4 configuration with custom theme variables
 
 - `components/` - React components
   - `ui/` - shadcn/ui components (button, card, input, label)
-  - `onboarding/` - 9-step onboarding flow components (Step1Objetivo through Step8Confirmacion, plus Step3Personales)
+  - `plans/` - Components for plans/menu feature
+  - `profile/` - Components for profile feature
   - `LayoutWrapper.tsx` - Layout wrapper with sidebar state management
   - `Sidebar.tsx` - Collapsible sidebar with navigation
   - `MobileHeader.tsx` - Mobile header with menu toggle
@@ -75,9 +75,11 @@ npm run lint
     - `profile.ts` - Profile operations with Go backend
     - `plans.ts` - Menu/plans operations with Go backend
   - `types/` - TypeScript type definitions
-    - `onboarding.ts` - Shared types for onboarding flow
     - `profile.ts` - Profile data types
     - `plans.ts` - Menu/plan data types
+  - `constants/` - Shared constants and configuration values
+    - `countries.ts` - List of countries
+    - `gender.ts` - Gender options
   - `utils.ts` - Utility functions (cn for class merging)
 
 - `components/ProtectedRoute.tsx` - Client-side route protection wrapper
@@ -139,37 +141,12 @@ const response = await fetchWithAuth('https://api.menuum.com/api/v1/profile', {
 })
 ```
 
-### Onboarding Flow
-
-The onboarding process (`app/onboarding/page.tsx`) consists of 9 steps that collect user data:
-
-1. **Step1Objetivo** - Weight goals (lose, maintain, gain muscle)
-2. **Step2Basicos** - Age (number), weight (number), height (number)
-3. **Step3Personales** - Personal info (name, last name, country)
-4. **Step4Sexo** - Gender selection
-5. **Step5Actividad** - Activity level
-6. **Step6Preferencias** - Dietary preferences
-7. **Step7Restricciones** - Dietary restrictions (string array)
-8. **Step8Habitos** - Cooking habits (skill level, time, equipment array)
-9. **Step9Confirmacion** - Review and submit with error handling
-
-**Data flow:**
-- All user data is stored in a single state object (`UserOnboardingData` type from `lib/types/onboarding.ts`)
-- Validated per-step via `canProceed()` function
-- On completion, data is mapped to `CreateProfilePayload` and POSTed to Go backend via `createProfile()` from `lib/api/profile.ts`
-- Go backend stores in its database (not Supabase)
-
-**Type Safety**: All components use shared types from `lib/types/onboarding.ts`:
-- `UserOnboardingData` - Main data structure (frontend state)
-- `OnboardingStepProps` - Props for Steps 1-8
-- `Step8Props` - Props for confirmation step with error handling
-
 ### Layout System
 
 **LayoutWrapper Pattern:**
 - `app/layout.tsx` wraps all pages with `LayoutWrapper`
 - `LayoutWrapper` conditionally renders `Sidebar` based on route
-- Sidebar hidden on: `/login`, `/register`, `/onboarding`
+- Sidebar hidden on: `/login`, `/register`, `/forgot-password`, `/reset-password`, `/verify-email`
 - Sidebar shown on: `/`, `/plans`, `/profile` (dashboard routes)
 - Uses React Context for sidebar collapse state
 - Responsive: mobile drawer overlay, desktop persistent sidebar
@@ -266,27 +243,40 @@ const plans = await getMenuHistory()
 
 ### Type Safety Pattern
 
-**Shared Types** (`lib/types/onboarding.ts`):
-- Single source of truth for onboarding data structure
-- Eliminates duplicate interface definitions
-- Numeric fields (edad, peso, estatura, comidas_al_dia) are `number` type, not `string`
-- Arrays must be typed: `string[]` not `any[]`
-- Constants exported for common values (OBJETIVOS, SEXO, NIVEL_ACTIVIDAD, etc.)
-
 **Type organization:**
-- `lib/types/onboarding.ts` - Onboarding flow data structures
-- `lib/types/profile.ts` - Profile data structures
-- `lib/types/plans.ts` - Menu/plan data structures
+- `lib/types/profile.ts` - Profile data structures and related types
+- `lib/types/plans.ts` - Menu/plan data structures and related types
+- `lib/constants/` - Shared constants (countries, gender, goals, activities, etc.)
 
-**Example - DO NOT create inline interfaces:**
+**Constants structure:**
+All constants are centralized in `lib/constants/` for reusability:
+- `countries.ts` - COUNTRIES array with country names and codes
+- `gender.ts` - GENDER_VALUES and GENDER_LABELS
+- `goals.ts` - GOALS array and GOAL_LABELS for user weight/health goals
+- `activities.ts` - ACTIVITIES array and ACTIVITY_LABELS for activity levels
+- `index.ts` - Barrel export for convenient importing
+
+**Key principles:**
+- Single source of truth for each data structure
+- Eliminates duplicate interface definitions
+- Numeric fields are `number` type, not `string`
+- Arrays must be typed: `string[]` not `any[]`
+- Constants exported from `lib/constants/` for reusability
+- Use barrel imports when importing multiple constants: `import { GOALS, ACTIVITIES } from '@/lib/constants'`
+
+**Example - DO NOT create inline interfaces or constants:**
 ```typescript
-// ❌ Bad - duplicate interface
-interface StepProps {
-  data: { objetivo: string; edad: number; ... }
+// ❌ Bad - duplicate interface or inline constants
+interface ProfileProps {
+  data: { name: string; age: number; ... }
 }
+const GOALS = [{ id: 'weight_loss', label: 'Perder peso' }];
 
-// ✅ Good - import shared type
-import { OnboardingStepProps } from '@/lib/types/onboarding'
+// ✅ Good - import shared types and constants
+import { ProfileData } from '@/lib/types/profile';
+import { GOALS, GOAL_LABELS } from '@/lib/constants/goals';
+// OR use barrel import
+import { GOALS, GOAL_LABELS, ACTIVITIES } from '@/lib/constants';
 ```
 
 ## Styling Conventions
@@ -340,5 +330,4 @@ className="bg-white/70 backdrop-blur-xl rounded-3xl border-2 border-gray-200/50"
 - **Route Protection**: Client-side via `ProtectedRoute` component (NO middleware)
 - **Form Library**: None - vanilla React state management with validation functions
 - **Next.js Version**: 16 with Turbopack
-- **Onboarding**: 9 steps total (not 8) - includes Step3Personales for personal information
 - **Plans Feature**: Menu generation with async processing (202 status on creation)
