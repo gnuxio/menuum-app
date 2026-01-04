@@ -7,7 +7,7 @@ import { User } from '@/lib/auth/client';
 import AvatarUpload from '@/components/profile/AvatarUpload';
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
 import ProfileInfoCard from '@/components/profile/ProfileInfoCard';
-import { GOALS, GOAL_LABELS, ACTIVITY_LABELS, ACTIVITIES } from '@/lib/types/profile';
+import { GOALS, GOAL_LABELS, ACTIVITIES, ACTIVITY_LABELS } from '@/lib/constants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
