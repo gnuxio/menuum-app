@@ -372,7 +372,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                       {profile.country ? (
                         <>
                           <MapPin className="w-4 h-4 text-green-600" />
-                          {profile.country}
+                          {COUNTRIES.find((c) => c.code === profile.country)?.name || profile.country}
                         </>
                       ) : (
                         'No especificado'
@@ -424,8 +424,8 @@ export default function ProfileView({ user }: ProfileViewProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {COUNTRIES.map((country) => (
-                          <SelectItem key={country} value={country}>
-                            {country}
+                          <SelectItem key={country.code} value={country.code}>
+                            {country.name}
                           </SelectItem>
                         ))}
                       </SelectContent>

@@ -1,9 +1,5 @@
-/**
- * API service for profile operations with the Go backend
- * ACTUALIZADO: Usa cookies httpOnly en lugar de JWT en header
- */
-
 import { fetchWithAuth } from '@/lib/auth/interceptor';
+import { COUNTRIES } from '@/lib/constants/countries';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.menuum.com';
 
@@ -50,6 +46,14 @@ export interface ProfileResponse {
  */
 export async function saveProfile(payload: ProfilePayload = {}): Promise<ProfileResponse> {
     try {
+        // Frontend validation for country code
+        if (payload.country) {
+            const allowedCountryCodes = COUNTRIES.map((c) => c.code);
+            if (!allowedCountryCodes.includes(payload.country)) {
+                throw new Error(`El código de país '${payload.country}' no es válido.`);
+            }
+        }
+
         const response = await fetchWithAuth(`${API_URL}/api/v1/profile`, {
             method: 'POST',
             headers: {
