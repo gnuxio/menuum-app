@@ -1,9 +1,9 @@
 export const COUNTRIES = [
-  { name: "México", code: "MX" },
-  { name: "Estados Unidos", code: "US" },
-  { name: "Canadá", code: "CA" },
-  { name: "España", code: "ES" },
-  { name: "Colombia", code: "CO" },
+  { name: "México", code: "mx" },
+  { name: "Estados Unidos", code: "us" },
+  { name: "Canadá", code: "ca" },
+  { name: "España", code: "es" },
+  { name: "Colombia", code: "co" },
 ] as const;
 
 export type Country = (typeof COUNTRIES)[number];

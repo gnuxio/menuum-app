@@ -92,7 +92,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
       weight: profile.weight || 0,
       height: profile.height || 0,
       gender: profile.gender || '',
-      country: profile.country || '',
+      country: profile.country?.toLowerCase() || '',
       goal: profile.goal || '',
       activity_level: profile.activity_level || '',
       dislikes: profile.dislikes || []
@@ -372,7 +372,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                       {profile.country ? (
                         <>
                           <MapPin className="w-4 h-4 text-green-600" />
-                          {COUNTRIES.find((c) => c.code === profile.country)?.name || profile.country}
+                          {COUNTRIES.find((c) => c.code === profile.country.toLowerCase())?.name || profile.country}
                         </>
                       ) : (
                         'No especificado'

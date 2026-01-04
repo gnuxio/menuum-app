@@ -12,24 +12,27 @@ import {
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.menuum.com';
 
+interface ApiResponseError {
+    error?: {
+        message: string;
+    };
+    message?: string;
+}
+
 /**
  * Get menu history (all plans for the user)
  */
 export async function getMenuHistory(): Promise<MenuHistoryItem[]> {
   try {
-    const response = await fetchWithAuth(`${API_URL}/api/v1/menu/history`, {
-      method: 'GET',
-    });
-
-    const result: MenuHistoryResponse = await response.json();
+    const result: MenuHistoryResponse | ApiResponseError = await response.json();
 
     if (!response.ok) {
-      const errorMessage = (result as any).error?.message || (result as any).message || 'Error al obtener historial de planes';
+      const errorMessage = (result as ApiResponseError).error?.message || (result as ApiResponseError).message || 'Error al obtener historial de planes';
       throw new Error(errorMessage);
     }
 
     // Backend envuelve la respuesta en { data: [...] }
-    return result.data;
+    return (result as MenuHistoryResponse).data;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -47,15 +50,15 @@ export async function getMenuById(id: string): Promise<MenuDetail> {
       method: 'GET',
     });
 
-    const result: MenuDetailResponse = await response.json();
+    const result: MenuDetailResponse | ApiResponseError = await response.json();
 
     if (!response.ok) {
-      const errorMessage = (result as any).error?.message || (result as any).message || 'Error al obtener plan';
+      const errorMessage = (result as ApiResponseError).error?.message || (result as ApiResponseError).message || 'Error al obtener plan';
       throw new Error(errorMessage);
     }
 
     // Backend envuelve la respuesta en { data: {...} }
-    return result.data;
+    return (result as MenuDetailResponse).data;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -76,16 +79,16 @@ export async function createMenu(): Promise<MenuHistoryItem> {
       },
     });
 
-    const result: MenuDetailResponse = await response.json();
+    const result: MenuDetailResponse | ApiResponseError = await response.json();
 
     // 202 Accepted es válido para proceso asíncrono
     if (response.status !== 202 && !response.ok) {
-      const errorMessage = (result as any).error?.message || (result as any).message || 'Error al generar nuevo plan';
+      const errorMessage = (result as ApiResponseError).error?.message || (result as ApiResponseError).message || 'Error al generar nuevo plan';
       throw new Error(errorMessage);
     }
 
     // Backend envuelve la respuesta en { data: {...} }
-    return result.data;
+    return (result as MenuDetailResponse).data;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -114,15 +117,15 @@ export async function regenerateMeal(
       }),
     });
 
-    const result: MenuDetailResponse = await response.json();
+    const result: MenuDetailResponse | ApiResponseError = await response.json();
 
     if (!response.ok) {
-      const errorMessage = (result as any).error?.message || (result as any).message || 'Error al regenerar comida';
+      const errorMessage = (result as ApiResponseError).error?.message || (result as ApiResponseError).message || 'Error al regenerar comida';
       throw new Error(errorMessage);
     }
 
     // Backend envuelve la respuesta en { data: {...} }
-    return result.data;
+    return (result as MenuDetailResponse).data;
   } catch (error) {
     if (error instanceof Error) {
       throw error;

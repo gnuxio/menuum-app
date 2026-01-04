@@ -49,6 +49,7 @@ export async function saveProfile(payload: ProfilePayload = {}): Promise<Profile
     try {
         // Frontend validation for country code
         if (payload.country) {
+            payload.country = payload.country.toLowerCase(); // Convert to lowercase
             const allowedCountryCodes = COUNTRIES.map((c) => c.code);
             if (!allowedCountryCodes.includes(payload.country)) {
                 throw new Error(`El código de país '${payload.country}' no es válido.`);
