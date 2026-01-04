@@ -1,5 +1,6 @@
 import { fetchWithAuth } from '@/lib/auth/interceptor';
 import { COUNTRIES } from '@/lib/constants/countries';
+import { GOALS, ACTIVITIES } from '@/lib/types/profile';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.menuum.com';
 
@@ -51,6 +52,22 @@ export async function saveProfile(payload: ProfilePayload = {}): Promise<Profile
             const allowedCountryCodes = COUNTRIES.map((c) => c.code);
             if (!allowedCountryCodes.includes(payload.country)) {
                 throw new Error(`El código de país '${payload.country}' no es válido.`);
+            }
+        }
+
+        // Frontend validation for goal
+        if (payload.goal) {
+            const allowedGoals = GOALS.map((g) => g.id);
+            if (!allowedGoals.includes(payload.goal)) {
+                throw new Error(`El objetivo '${payload.goal}' no es válido.`);
+            }
+        }
+
+        // Frontend validation for activity level
+        if (payload.activity_level) {
+            const allowedActivityLevels = ACTIVITIES.map((a) => a.id);
+            if (!allowedActivityLevels.includes(payload.activity_level)) {
+                throw new Error(`El nivel de actividad '${payload.activity_level}' no es válido.`);
             }
         }
 

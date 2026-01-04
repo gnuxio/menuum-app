@@ -7,7 +7,7 @@ import { User } from '@/lib/auth/client';
 import AvatarUpload from '@/components/profile/AvatarUpload';
 import ChangePasswordModal from '@/components/profile/ChangePasswordModal';
 import ProfileInfoCard from '@/components/profile/ProfileInfoCard';
-import { GOAL_LABELS, ACTIVITY_LABELS } from '@/lib/types/profile';
+import { GOALS, GOAL_LABELS, ACTIVITY_LABELS, ACTIVITIES } from '@/lib/types/profile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -100,7 +100,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
   };
 
   // Update a single field
-  const updateField = (field: keyof ProfilePayload, value: any) => {
+  const updateField = (field: keyof ProfilePayload, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     // Clear field error
     if (formErrors[field]) {
@@ -597,11 +597,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                   <div className="space-y-2">
                     <Label>Objetivo</Label>
                     <div className="space-y-2">
-                      {[
-                        { id: 'perder_peso', label: 'Perder peso' },
-                        { id: 'mantener_peso', label: 'Mantener peso' },
-                        { id: 'ganar_musculo', label: 'Ganar músculo' }
-                      ].map((objetivo) => (
+                      {GOALS.map((objetivo) => (
                         <button
                           key={objetivo.id}
                           type="button"
@@ -632,13 +628,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                   <div className="space-y-2">
                     <Label>Nivel de actividad</Label>
                     <div className="space-y-2">
-                      {[
-                        { id: 'sedentario', label: 'Sedentario', desc: 'Poco o ningún ejercicio' },
-                        { id: 'ligero', label: 'Ligero', desc: 'Ejercicio ligero 1-3 días/semana' },
-                        { id: 'moderado', label: 'Moderado', desc: 'Ejercicio moderado 3-5 días/semana' },
-                        { id: 'alto', label: 'Alto', desc: 'Ejercicio intenso 6-7 días/semana' },
-                        { id: 'muy_alto', label: 'Muy alto', desc: 'Entrenamiento intenso diario' }
-                      ].map((actividad) => (
+                      {ACTIVITIES.map((actividad) => (
                         <button
                           key={actividad.id}
                           type="button"
