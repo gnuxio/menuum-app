@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import { ChefHat, Sparkles, Eye, EyeOff } from "lucide-react";
+import { ChefHat, Eye, EyeOff } from "lucide-react";
 import { authClient } from "@/lib/auth/client";
 
 export default function Login() {
@@ -52,7 +52,7 @@ export default function Login() {
     }
 
     return (
-        <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-green-50 via-emerald-50 to-orange-50">
+        <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 via-emerald-50 to-orange-50">
             {/* Decorative backgrounds */}
             <div className="absolute top-0 left-0 w-64 h-64 bg-green-400/10 rounded-full blur-3xl animate-pulse" />
             <div className="absolute bottom-0 right-0 w-72 h-72 bg-orange-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -67,15 +67,15 @@ export default function Login() {
                 <Card className="backdrop-blur-xl bg-white/70 border border-gray-200/50 rounded-3xl shadow-2xl shadow-green-200/30">
                     <CardHeader className="text-center space-y-3">
                         <div className="flex justify-center">
-                            <div className="w-14 h-14 bg-linear-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
+                            <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/30">
                                 <ChefHat className="w-7 h-7 text-white" />
                             </div>
                         </div>
-                        <CardTitle className="text-3xl font-bold bg-linear-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                        <CardTitle className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                             Bienvenido a Menuum
                         </CardTitle>
                         <p className="text-gray-500 text-sm">
-                            Planifica tu semana sin complicarte 🍃
+                            Come rico sin complicarte 🍃
                         </p>
                     </CardHeader>
 
@@ -165,10 +165,9 @@ export default function Login() {
                 </Card>
 
                 {/* Decorative message */}
-                <div className="mt-6 flex justify-center items-center text-gray-500 text-sm gap-2">
-                    <Sparkles className="w-4 h-4 text-green-500" />
-                    <span>Planificación inteligente con IA</span>
-                </div>
+                <p className="mt-6 text-center text-gray-600 text-sm">
+                    Tu chef personal de nutrición 👨‍🍳
+                </p>
             </motion.div>
         </main>
     );
