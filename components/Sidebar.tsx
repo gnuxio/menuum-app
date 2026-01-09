@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Calendar, User, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { Home, Calendar, User, LogOut, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { useSidebarContext } from "./LayoutWrapper";
@@ -116,7 +116,15 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                 </nav>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-gray-200">
+                <div className="p-4 border-t border-gray-200 space-y-2">
+                    <button
+                        onClick={() => handleNavigation('/disclaimer')}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-gray-600 hover:bg-gray-50 transition-all cursor-pointer ${isCollapsed ? 'md:justify-center' : ''}`}
+                        title={isCollapsed ? 'Descargo de responsabilidad' : undefined}
+                    >
+                        <FileText className="w-5 h-5 flex-shrink-0" />
+                        <span className={isCollapsed ? 'md:hidden' : ''}>Descargo</span>
+                    </button>
                     <button
                         onClick={handleSignOut}
                         className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all cursor-pointer ${isCollapsed ? 'md:justify-center' : ''}`}
