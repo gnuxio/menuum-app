@@ -5,6 +5,7 @@ import { AlertTriangle, ChevronLeft, Info, Shield, Heart, Scale, FileText } from
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
 export default function DisclaimerPage() {
   const router = useRouter();
@@ -49,7 +50,8 @@ export default function DisclaimerPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ProtectedRoute>
+      <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 md:px-8 py-8">
 
         {/* Header */}
@@ -214,5 +216,6 @@ export default function DisclaimerPage() {
         </motion.div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
