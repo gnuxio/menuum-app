@@ -24,6 +24,10 @@ interface ApiResponseError {
  */
 export async function getMenuHistory(): Promise<MenuHistoryItem[]> {
   try {
+    const response = await fetchWithAuth(`${API_URL}/api/v1/menu/history`, {
+      method: 'GET',
+    });
+
     const result: MenuHistoryResponse | ApiResponseError = await response.json();
 
     if (!response.ok) {

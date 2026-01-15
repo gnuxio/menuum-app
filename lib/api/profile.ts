@@ -51,7 +51,7 @@ export async function saveProfile(payload: ProfilePayload = {}): Promise<Profile
         // Frontend validation for country code
         if (payload.country) {
             payload.country = payload.country.toLowerCase(); // Convert to lowercase
-            const allowedCountryCodes = COUNTRIES.map((c) => c.code);
+            const allowedCountryCodes: string[] = COUNTRIES.map((c) => c.code);
             if (!allowedCountryCodes.includes(payload.country)) {
                 throw new Error(`El código de país '${payload.country}' no es válido.`);
             }
@@ -59,7 +59,7 @@ export async function saveProfile(payload: ProfilePayload = {}): Promise<Profile
 
         // Frontend validation for goal
         if (payload.goal) {
-            const allowedGoals = GOALS.map((g) => g.id);
+            const allowedGoals: string[] = GOALS.map((g) => g.id);
             if (!allowedGoals.includes(payload.goal)) {
                 throw new Error(`El objetivo '${payload.goal}' no es válido.`);
             }
@@ -67,7 +67,7 @@ export async function saveProfile(payload: ProfilePayload = {}): Promise<Profile
 
         // Frontend validation for activity level
         if (payload.activity_level) {
-            const allowedActivityLevels = ACTIVITIES.map((a) => a.id);
+            const allowedActivityLevels: string[] = ACTIVITIES.map((a) => a.id);
             if (!allowedActivityLevels.includes(payload.activity_level)) {
                 throw new Error(`El nivel de actividad '${payload.activity_level}' no es válido.`);
             }
