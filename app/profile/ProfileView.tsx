@@ -404,7 +404,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
                       {profile.country ? (
                         <>
                           <MapPin className="w-4 h-4 text-green-600" />
-                          {COUNTRIES.find((c) => c.code === profile.country.toLowerCase())?.name || profile.country}
+                          {COUNTRIES.find((c) => c.code === profile.country?.toLowerCase())?.name || profile.country}
                         </>
                       ) : (
                         'No especificado'
