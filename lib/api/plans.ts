@@ -13,7 +13,7 @@ import {
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.menuum.com';
 
 interface ApiResponseError {
-    error?: {
+    error?: string | {
         message: string;
     };
     message?: string;
@@ -31,7 +31,11 @@ export async function getMenuHistory(): Promise<MenuHistoryItem[]> {
     const result: MenuHistoryResponse | ApiResponseError = await response.json();
 
     if (!response.ok) {
-      const errorMessage = (result as ApiResponseError).error?.message || (result as ApiResponseError).message || 'Error al obtener historial de planes';
+      const errorResult = result as ApiResponseError;
+      const errorMessage =
+        (typeof errorResult.error === 'string' ? errorResult.error : errorResult.error?.message) ||
+        errorResult.message ||
+        'Error al obtener historial de planes';
       throw new Error(errorMessage);
     }
 
@@ -57,7 +61,11 @@ export async function getMenuById(id: string): Promise<MenuDetail> {
     const result: MenuDetailResponse | ApiResponseError = await response.json();
 
     if (!response.ok) {
-      const errorMessage = (result as ApiResponseError).error?.message || (result as ApiResponseError).message || 'Error al obtener plan';
+      const errorResult = result as ApiResponseError;
+      const errorMessage =
+        (typeof errorResult.error === 'string' ? errorResult.error : errorResult.error?.message) ||
+        errorResult.message ||
+        'Error al obtener plan';
       throw new Error(errorMessage);
     }
 
@@ -87,7 +95,12 @@ export async function createMenu(): Promise<MenuHistoryItem> {
 
     // 202 Accepted es válido para proceso asíncrono
     if (response.status !== 202 && !response.ok) {
-      const errorMessage = (result as ApiResponseError).error?.message || (result as ApiResponseError).message || 'Error al generar nuevo plan';
+      const errorResult = result as ApiResponseError;
+      // El backend puede devolver error como string o como objeto con message
+      const errorMessage =
+        (typeof errorResult.error === 'string' ? errorResult.error : errorResult.error?.message) ||
+        errorResult.message ||
+        'Error al generar nuevo plan';
       throw new Error(errorMessage);
     }
 
@@ -124,7 +137,11 @@ export async function regenerateMeal(
     const result: MenuDetailResponse | ApiResponseError = await response.json();
 
     if (!response.ok) {
-      const errorMessage = (result as ApiResponseError).error?.message || (result as ApiResponseError).message || 'Error al regenerar comida';
+      const errorResult = result as ApiResponseError;
+      const errorMessage =
+        (typeof errorResult.error === 'string' ? errorResult.error : errorResult.error?.message) ||
+        errorResult.message ||
+        'Error al regenerar comida';
       throw new Error(errorMessage);
     }
 

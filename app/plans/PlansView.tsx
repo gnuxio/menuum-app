@@ -6,7 +6,7 @@ import { getMenuHistory, createMenu } from '@/lib/api/plans';
 import { MenuHistoryItem } from '@/lib/types/plans';
 import { User } from '@/lib/auth/client';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, UserCircle } from 'lucide-react';
+import { Plus, RefreshCw, UserCircle, Crown } from 'lucide-react';
 import PlanCard from '@/components/plans/PlanCard';
 import SearchAndFilters from '@/components/plans/SearchAndFilters';
 import EmptyState from '@/components/plans/EmptyState';
@@ -22,6 +22,7 @@ export default function PlansView({ user }: PlansViewProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isIncompleteProfile, setIsIncompleteProfile] = useState(false);
+  const [isLimitReached, setIsLimitReached] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Filtros
@@ -145,20 +146,30 @@ export default function PlansView({ user }: PlansViewProps) {
       setIsGenerating(true);
       setError(null);
       setIsIncompleteProfile(false);
+      setIsLimitReached(false);
       await createMenu();
       // Recargar inmediatamente para mostrar el plan "processing"
       await loadPlans();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Error al generar plan';
 
+      // Detectar si es un error de límite alcanzado
+      if (errorMessage.toLowerCase().includes('limit reached') ||
+          errorMessage.toLowerCase().includes('upgrade to premium')) {
+        setIsLimitReached(true);
+        setError(null);
+        setIsIncompleteProfile(false);
+      }
       // Detectar si es un error de perfil incompleto
-      if (errorMessage.toLowerCase().includes('incomplete') ||
+      else if (errorMessage.toLowerCase().includes('incomplete') ||
           errorMessage.toLowerCase().includes('complete your profile')) {
         setIsIncompleteProfile(true);
         setError(null);
+        setIsLimitReached(false);
       } else {
         setError(errorMessage);
         setIsIncompleteProfile(false);
+        setIsLimitReached(false);
       }
     } finally {
       setIsGenerating(false);
@@ -222,11 +233,11 @@ export default function PlansView({ user }: PlansViewProps) {
               Historial de tus planes generados
             </p>
           </div>
-          {plans.length > 0 && (
+          {plans.length > 0 && !isLimitReached && (
             <Button
               onClick={handleCreatePlan}
               disabled={isGenerating}
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/20 hover:shadow-green-500/40 hover:scale-[1.02] transition-all"
+              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg shadow-green-500/20 hover:shadow-green-500/40 hover:scale-[1.02] transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4 mr-2" />
               {isGenerating ? 'Generando...' : 'Nuevo Plan'}
@@ -279,8 +290,43 @@ export default function PlansView({ user }: PlansViewProps) {
               </motion.div>
             )}
 
+            {/* Limit reached banner (si se alcanzó el límite mensual) */}
+            {isLimitReached && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 px-6 py-4 rounded-xl mb-6"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center">
+                      <Crown className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-gray-800 mb-1">
+                      Has alcanzado tu límite mensual
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Has generado todos los planes disponibles en tu plan gratuito este mes. Actualiza a Premium para disfrutar de planes ilimitados y más funciones.
+                    </p>
+                    <div className="flex gap-3">
+                      <Button
+                        onClick={() => window.location.href = '/premium'}
+                        size="sm"
+                        className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 cursor-pointer"
+                      >
+                        <Crown className="w-4 h-4 mr-2" />
+                        Ver planes Premium
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* Error banner (si hay error pero también datos) */}
-            {error && !isIncompleteProfile && (
+            {error && !isIncompleteProfile && !isLimitReached && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
