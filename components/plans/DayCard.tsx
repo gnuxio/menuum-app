@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Day, MEAL_TYPE_STYLES } from '@/lib/types/plans';
+import { Day, MEAL_TYPE_STYLES, MEAL_TYPE_LABELS, DAY_NAME_LABELS } from '@/lib/types/plans';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Flame, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react';
@@ -17,8 +17,11 @@ interface DayCardProps {
 }
 
 export default function DayCard({ day, index, menuId, onRegenerateMeal, regeneratingMeal }: DayCardProps) {
-  const totalCalories = day.meals.reduce((sum, meal) => sum + meal.calories, 0);
+  const totalCalories = day.calories_day || day.meals.reduce((sum, meal) => sum + meal.calories, 0);
   const [expandedMeals, setExpandedMeals] = useState<Set<number>>(new Set());
+
+  // Nombre del día en inglés (para el backend) y en español (para la UI)
+  const dayNameLabel = DAY_NAME_LABELS[day.day_name] || day.day_name;
 
   const toggleMeal = (mealIndex: number) => {
     setExpandedMeals(prev => {
@@ -42,7 +45,7 @@ export default function DayCard({ day, index, menuId, onRegenerateMeal, regenera
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center justify-between">
             <span className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-              {day.name}
+              {dayNameLabel}
             </span>
             <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-orange-50 to-red-50 rounded-xl border border-orange-100">
               <Flame className="w-5 h-5 text-orange-500" />
@@ -55,7 +58,7 @@ export default function DayCard({ day, index, menuId, onRegenerateMeal, regenera
           <div className="space-y-3">
             {day.meals.map((meal, mealIndex) => {
               const isExpanded = expandedMeals.has(mealIndex);
-              const isRegenerating = regeneratingMeal?.dayName === day.name && regeneratingMeal?.mealType === meal.type;
+              const isRegenerating = regeneratingMeal?.dayName === day.day_name && regeneratingMeal?.mealType === meal.type;
 
               return (
                 <motion.div
@@ -69,7 +72,7 @@ export default function DayCard({ day, index, menuId, onRegenerateMeal, regenera
                   <Button
                     onClick={(e) => {
                       e.stopPropagation();
-                      onRegenerateMeal(day.name, meal.type);
+                      onRegenerateMeal(day.day_name, meal.type);
                     }}
                     disabled={isRegenerating || regeneratingMeal !== null}
                     variant="outline"
@@ -88,7 +91,7 @@ export default function DayCard({ day, index, menuId, onRegenerateMeal, regenera
                   >
                     <div className="flex-1 min-w-0">
                       <Badge className={`${MEAL_TYPE_STYLES[meal.type] || 'bg-gray-100 text-gray-700'} text-xs md:text-sm px-2 md:px-3 py-1 mb-2`}>
-                        {meal.type}
+                        {MEAL_TYPE_LABELS[meal.type] || meal.type}
                       </Badge>
                       <h4 className="font-bold text-gray-800 text-base md:text-lg truncate">
                         {meal.name}

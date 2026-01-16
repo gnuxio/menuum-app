@@ -74,7 +74,7 @@ export default function PlanCard({ plan, index }: PlanCardProps) {
                 <span className="text-xs md:text-sm whitespace-nowrap">Total semanal:</span>
               </div>
               <div className="text-lg md:text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                {plan.calories_total.toLocaleString()} kcal
+                {plan.calories_total ? plan.calories_total.toLocaleString() : '—'} kcal
               </div>
             </div>
 

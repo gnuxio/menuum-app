@@ -97,7 +97,8 @@ export default function ProfileView({ user }: ProfileViewProps) {
       goal: profile.goal || '',
       activity_level: profile.activity_level || '',
       dislikes: profile.dislikes || [],
-      calories: profile.calories || 0
+      calories: profile.calories || 0,
+      meals_per_day: profile.meals_per_day || 3
     });
     // Usar el campo calories_manually_set del backend para determinar el estado del checkbox
     // Si calories_manually_set es true → isAutomaticCalories es false (modo manual)
@@ -190,7 +191,8 @@ export default function ProfileView({ user }: ProfileViewProps) {
         country: formData.country,
         goal: formData.goal,
         activity_level: formData.activity_level,
-        dislikes: formData.dislikes
+        dislikes: formData.dislikes,
+        meals_per_day: formData.meals_per_day
       };
 
       // Solo añadir calories si el checkbox está desactivado (manual)
@@ -623,6 +625,12 @@ export default function ProfileView({ user }: ProfileViewProps) {
                       {profile.activity_level ? (ACTIVITY_LABELS[profile.activity_level] || profile.activity_level) : 'No especificado'}
                     </span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">Comidas por día:</span>
+                    <span className={`font-semibold ${profile.meals_per_day ? 'text-gray-800' : 'text-gray-400 italic'}`}>
+                      {profile.meals_per_day || 3}
+                    </span>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -689,6 +697,29 @@ export default function ProfileView({ user }: ProfileViewProps) {
                       ))}
                     </div>
                     {formErrors.activity_level && <p className="text-xs text-red-500">{formErrors.activity_level}</p>}
+                  </div>
+
+                  {/* Meals per day section */}
+                  <div className="space-y-2">
+                    <Label>Comidas por día</Label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {[2, 3, 4, 5, 6].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => updateField('meals_per_day', num)}
+                          disabled={isSaving}
+                          className={`p-3 rounded-xl border-2 transition-all cursor-pointer ${
+                            formData.meals_per_day === num
+                              ? 'border-green-500 bg-green-50 shadow-lg shadow-green-500/20'
+                              : 'border-gray-200 bg-white hover:border-gray-300'
+                          }`}
+                        >
+                          <span className="font-bold text-lg">{num}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500">Cantidad de comidas que deseas en tu plan diario</p>
                   </div>
 
                   {/* Calories section */}

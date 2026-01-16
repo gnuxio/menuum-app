@@ -13,24 +13,28 @@ export interface MenuHistoryItem {
 }
 
 export interface Meal {
-  type: string; // "Desayuno", "Almuerzo", "Cena", "Snack"
+  id: string;
+  type: string; // "Breakfast", "Lunch", "Dinner", "Snack"
   name: string;
   calories: number;
   ingredients: string[];
 }
 
 export interface Day {
-  name: string; // "Lunes", "Martes", etc.
+  id: string;
+  day_name: string; // "Monday", "Tuesday", etc.
+  calories_day: number;
   meals: Meal[];
 }
 
 export interface MenuDetail {
   id: string;
-  user_id: string;
+  profile_id: string;
   week_start_date: string;
   calories_total: number;
   source: string;
   status: "processing" | "completed" | "failed";
+  error_message: string | null;
   days: Day[];
   created_at: string;
 }
@@ -66,16 +70,35 @@ export const STATUS_BADGE_STYLES: Record<string, string> = {
 
 // Constantes para tipos de comida
 export const MEAL_TYPES = {
-  DESAYUNO: 'Desayuno',
-  ALMUERZO: 'Almuerzo',
-  CENA: 'Cena',
+  BREAKFAST: 'Breakfast',
+  LUNCH: 'Lunch',
+  DINNER: 'Dinner',
   SNACK: 'Snack',
 } as const;
 
+// Labels en español para tipos de comida
+export const MEAL_TYPE_LABELS: Record<string, string> = {
+  Breakfast: 'Desayuno',
+  Lunch: 'Almuerzo',
+  Dinner: 'Cena',
+  Snack: 'Snack',
+};
+
 // Estilos para badges de tipos de comida
 export const MEAL_TYPE_STYLES: Record<string, string> = {
-  Desayuno: 'bg-orange-100 text-orange-700 border-orange-200',
-  Almuerzo: 'bg-emerald-100 text-emerald-700 border-emerald-200',
-  Cena: 'bg-purple-100 text-purple-700 border-purple-200',
+  Breakfast: 'bg-orange-100 text-orange-700 border-orange-200',
+  Lunch: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  Dinner: 'bg-purple-100 text-purple-700 border-purple-200',
   Snack: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+};
+
+// Labels en español para días de la semana
+export const DAY_NAME_LABELS: Record<string, string> = {
+  Monday: 'Lunes',
+  Tuesday: 'Martes',
+  Wednesday: 'Miércoles',
+  Thursday: 'Jueves',
+  Friday: 'Viernes',
+  Saturday: 'Sábado',
+  Sunday: 'Domingo',
 };

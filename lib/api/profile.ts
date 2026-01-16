@@ -19,6 +19,7 @@ export interface ProfilePayload {
     activity_level?: string;
     dislikes?: string[];
     calories?: number;
+    meals_per_day?: number;
 }
 
 /**
@@ -39,6 +40,7 @@ export interface ProfileResponse {
     calories_manually_set?: boolean;
     dislikes?: string[];
     avatar_url?: string;
+    meals_per_day?: number;
 }
 
 /**
@@ -74,7 +76,7 @@ export async function saveProfile(payload: ProfilePayload = {}): Promise<Profile
         }
 
         const response = await fetchWithAuth(`${API_URL}/api/v1/profile`, {
-            method: 'POST',
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -88,8 +90,8 @@ export async function saveProfile(payload: ProfilePayload = {}): Promise<Profile
             throw new Error(errorMessage);
         }
 
-        // Backend envuelve la respuesta en { data: ... }
-        return result.data;
+        // El backend devuelve el perfil directamente (sin wrapper { data: ... })
+        return result;
     } catch (error) {
         if (error instanceof Error) {
             throw error;
@@ -114,7 +116,8 @@ export async function getProfile(): Promise<ProfileResponse> {
             throw new Error(errorMessage);
         }
 
-        return result.data;
+        // El backend devuelve el perfil directamente (sin wrapper { data: ... })
+        return result;
     } catch (error) {
         if (error instanceof Error) {
             throw error;
@@ -143,7 +146,8 @@ export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> 
             throw new Error(errorMessage);
         }
 
-        return result.data;
+        // El backend devuelve el resultado directamente (sin wrapper { data: ... })
+        return result;
     } catch (error) {
         if (error instanceof Error) {
             throw error;

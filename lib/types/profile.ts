@@ -16,6 +16,7 @@ export interface ProfileData {
   height?: number;
   gender?: string;
   activity_level?: string;
+  meals_per_day?: number;
 }
 
 export interface AvatarUploadResponse {

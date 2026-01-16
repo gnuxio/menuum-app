@@ -35,8 +35,8 @@ export async function getMenuHistory(): Promise<MenuHistoryItem[]> {
       throw new Error(errorMessage);
     }
 
-    // Backend envuelve la respuesta en { data: [...] }
-    return (result as MenuHistoryResponse).data;
+    // El backend devuelve el array directamente (sin wrapper { data: ... })
+    return result as MenuHistoryItem[];
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -61,8 +61,8 @@ export async function getMenuById(id: string): Promise<MenuDetail> {
       throw new Error(errorMessage);
     }
 
-    // Backend envuelve la respuesta en { data: {...} }
-    return (result as MenuDetailResponse).data;
+    // El backend devuelve el objeto directamente (sin wrapper { data: ... })
+    return result as MenuDetail;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -91,8 +91,8 @@ export async function createMenu(): Promise<MenuHistoryItem> {
       throw new Error(errorMessage);
     }
 
-    // Backend envuelve la respuesta en { data: {...} }
-    return (result as MenuDetailResponse).data;
+    // El backend devuelve el objeto directamente (sin wrapper { data: ... })
+    return result as MenuHistoryItem;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
@@ -128,8 +128,8 @@ export async function regenerateMeal(
       throw new Error(errorMessage);
     }
 
-    // Backend envuelve la respuesta en { data: {...} }
-    return (result as MenuDetailResponse).data;
+    // El backend devuelve el objeto directamente (sin wrapper { data: ... })
+    return result as MenuDetail;
   } catch (error) {
     if (error instanceof Error) {
       throw error;
