@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { getProfile, saveProfile, type ProfilePayload, type ProfileResponse } from '@/lib/api/profile';
 import { User } from '@/lib/auth/client';
 import AvatarUpload from '@/components/profile/AvatarUpload';
@@ -33,7 +34,9 @@ import {
   X,
   Loader2,
   CheckCircle,
-  Activity
+  Activity,
+  CreditCard,
+  ArrowRight
 } from 'lucide-react';
 import { GENDER_VALUES, GENDER_LABELS } from '@/lib/constants/gender';
 
@@ -42,10 +45,11 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({ user }: ProfileViewProps) {
+  const router = useRouter();
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { isPremium, loading: subscriptionLoading } = useSubscription();
+  const { isPremium, isCancelling, subscription, loading: subscriptionLoading } = useSubscription();
 
   // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
@@ -877,6 +881,40 @@ export default function ProfileView({ user }: ProfileViewProps) {
               </div>
             </ProfileInfoCard>
           </motion.div>
+
+          {/* Subscription Card - Only show if user has premium */}
+          {isPremium && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+            >
+              <ProfileInfoCard
+                title="Suscripción"
+                icon={CreditCard}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600">Gestiona tu plan Premium</p>
+                    <PremiumBadge
+                      variant="compact"
+                      prominence="subtle"
+                      isCancelling={isCancelling}
+                      cancelDate={subscription?.current_period_end || undefined}
+                    />
+                  </div>
+                  <Button
+                    onClick={() => router.push('/subscription/manage')}
+                    variant="outline"
+                    className="w-full border-2 cursor-pointer group"
+                  >
+                    Ver detalles
+                    <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </ProfileInfoCard>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>

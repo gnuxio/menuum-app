@@ -30,6 +30,7 @@ export function useSubscription() {
     loading,
     error,
     isPremium: subscription?.status === 'active',
+    isCancelling: subscription?.cancel_at_period_end === true,
     refreshSubscription,
   }
 }

@@ -63,3 +63,16 @@ export async function cancelSubscription(): Promise<void> {
     throw new Error(error.detail || 'Failed to cancel subscription')
   }
 }
+
+export async function reactivateSubscription(): Promise<Subscription> {
+  const response = await fetchWithAuth(`${API_URL}/api/v1/subscription/reactivate`, {
+    method: 'POST',
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'Failed to reactivate subscription' }))
+    throw new Error(error.detail || 'Failed to reactivate subscription')
+  }
+
+  return response.json()
+}
