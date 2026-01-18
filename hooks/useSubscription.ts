@@ -1,10 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getSubscriptionStatus, type Subscription } from '@/lib/api/subscription'
+import { getSubscriptionStatus, type SubscriptionStatusResponse } from '@/lib/api/subscription'
 
 export function useSubscription() {
-  const [subscription, setSubscription] = useState<Subscription | null>(null)
+  const [data, setData] = useState<SubscriptionStatusResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -12,8 +12,8 @@ export function useSubscription() {
     try {
       setLoading(true)
       setError(null)
-      const data = await getSubscriptionStatus()
-      setSubscription(data)
+      const response = await getSubscriptionStatus()
+      setData(response)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load subscription')
     } finally {
@@ -26,11 +26,11 @@ export function useSubscription() {
   }, [])
 
   return {
-    subscription,
+    subscription: data?.subscription,
     loading,
     error,
-    isPremium: subscription?.status === 'active',
-    isCancelling: subscription?.cancel_at_period_end === true,
+    isPremium: data?.has_premium_access ?? false,
+    isCancelling: data?.subscription?.cancel_at_period_end === true,
     refreshSubscription,
   }
 }

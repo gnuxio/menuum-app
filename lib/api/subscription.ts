@@ -25,6 +25,11 @@ export interface Subscription {
   updated_at: string
 }
 
+export interface SubscriptionStatusResponse {
+  subscription: Subscription | null
+  has_premium_access: boolean
+}
+
 export async function createCheckoutSession(
   plan: 'premium_monthly' | 'premium_yearly',
 ): Promise<CheckoutResponse> {
@@ -42,11 +47,13 @@ export async function createCheckoutSession(
   return response.json()
 }
 
-export async function getSubscriptionStatus(): Promise<Subscription | null> {
+export async function getSubscriptionStatus(): Promise<SubscriptionStatusResponse> {
   const response = await fetchWithAuth(`${API_URL}/api/v1/subscription/status`)
 
   if (!response.ok) {
-    if (response.status === 404) return null
+    if (response.status === 404) {
+      return { subscription: null, has_premium_access: false }
+    }
     throw new Error('Failed to fetch subscription status')
   }
 
