@@ -9,6 +9,8 @@ import { User } from '@/lib/auth/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useSubscription } from '@/hooks/useSubscription';
+import { PremiumBadge } from '@/components/ui/premium-badge';
 import {
   Calendar,
   ChevronRight,
@@ -29,6 +31,7 @@ export default function DashboardView({ user }: DashboardViewProps) {
   const [activePlan, setActivePlan] = useState<MenuDetail | null>(null);
   const [todayData, setTodayData] = useState<Day | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { isPremium, loading: subscriptionLoading } = useSubscription();
 
   useEffect(() => {
     loadActivePlan();
@@ -135,7 +138,16 @@ export default function DashboardView({ user }: DashboardViewProps) {
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
             Dashboard
           </h1>
-          <p className="text-gray-600 mt-2">Bienvenido, {user?.name || user?.email}</p>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-gray-600">Bienvenido, {user?.name || user?.email}</p>
+            {/* Premium Badge - very subtle inline decoration */}
+            {isPremium && !subscriptionLoading && (
+              <PremiumBadge
+                variant="icon-only"
+                prominence="subtle"
+              />
+            )}
+          </div>
         </motion.div>
 
         {/* No Active Plan State */}

@@ -4,6 +4,8 @@ import { Home, Calendar, User, LogOut, ChevronLeft, ChevronRight, FileText } fro
 import { useRouter, usePathname } from "next/navigation";
 import { authClient } from "@/lib/auth/client";
 import { useSidebarContext } from "./LayoutWrapper";
+import { useSubscription } from "@/hooks/useSubscription";
+import { PremiumBadge } from "./ui/premium-badge";
 
 interface SidebarProps {
     isMobileOpen: boolean;
@@ -14,6 +16,7 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
     const { isCollapsed, setIsCollapsed } = useSidebarContext();
+    const { isPremium, loading: subscriptionLoading } = useSubscription();
 
     const handleSignOut = async () => {
         await authClient.logout();
@@ -86,6 +89,33 @@ export default function Sidebar({ isMobileOpen, onMobileClose }: SidebarProps) {
                     >
                         Menuum
                     </button>
+
+                    {/* Premium Badge */}
+                    {isPremium && !subscriptionLoading && (
+                        <div className="mt-3 flex justify-center">
+                            {/* Desktop collapsed: icon-only */}
+                            <div className="hidden md:block">
+                                {isCollapsed ? (
+                                    <PremiumBadge
+                                        variant="icon-only"
+                                        prominence="prominent"
+                                    />
+                                ) : (
+                                    <PremiumBadge
+                                        variant="full"
+                                        prominence="prominent"
+                                    />
+                                )}
+                            </div>
+                            {/* Mobile: always full */}
+                            <div className="md:hidden">
+                                <PremiumBadge
+                                    variant="full"
+                                    prominence="prominent"
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Navigation */}

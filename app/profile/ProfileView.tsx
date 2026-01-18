@@ -11,6 +11,8 @@ import { GOALS, GOAL_LABELS, ACTIVITIES, ACTIVITY_LABELS } from '@/lib/constants
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useSubscription } from '@/hooks/useSubscription';
+import { PremiumBadge } from '@/components/ui/premium-badge';
 import {
   Select,
   SelectContent,
@@ -43,6 +45,7 @@ export default function ProfileView({ user }: ProfileViewProps) {
   const [profile, setProfile] = useState<ProfileResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isPremium, loading: subscriptionLoading } = useSubscription();
 
   // Edit mode states
   const [isEditing, setIsEditing] = useState(false);
@@ -252,9 +255,18 @@ export default function ProfileView({ user }: ProfileViewProps) {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            Mi Perfil
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+              Mi Perfil
+            </h1>
+            {/* Premium Badge - subtle */}
+            {isPremium && !subscriptionLoading && (
+              <PremiumBadge
+                variant="compact"
+                prominence="subtle"
+              />
+            )}
+          </div>
           <p className="text-gray-600 mt-2">Gestiona tu información personal</p>
         </motion.div>
 
