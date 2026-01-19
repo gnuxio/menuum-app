@@ -20,6 +20,7 @@ export interface Subscription {
   plan: string
   current_period_start: string | null
   current_period_end: string | null
+  cancel_at_period_end: boolean
   created_at: string
   updated_at: string
 }
@@ -39,8 +40,8 @@ export async function createCheckoutSession(
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to create checkout session' }))
-    throw new Error(error.detail || 'Failed to create checkout session')
+    const data = await response.json().catch(() => ({ error: 'Error al crear sesión de pago' }))
+    throw new Error(data.error || data.detail || 'Error al crear sesión de pago')
   }
 
   return response.json()
@@ -65,8 +66,8 @@ export async function cancelSubscription(): Promise<void> {
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to cancel subscription' }))
-    throw new Error(error.detail || 'Failed to cancel subscription')
+    const data = await response.json().catch(() => ({ error: 'Error al cancelar suscripción' }))
+    throw new Error(data.error || data.detail || 'Error al cancelar suscripción')
   }
 }
 
@@ -76,8 +77,8 @@ export async function reactivateSubscription(): Promise<Subscription> {
   })
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ detail: 'Failed to reactivate subscription' }))
-    throw new Error(error.detail || 'Failed to reactivate subscription')
+    const data = await response.json().catch(() => ({ error: 'Error al reactivar suscripción' }))
+    throw new Error(data.error || data.detail || 'Error al reactivar suscripción')
   }
 
   return response.json()

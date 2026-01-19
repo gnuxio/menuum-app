@@ -30,7 +30,7 @@ export function useSubscription() {
     loading,
     error,
     isPremium: data?.has_premium_access ?? false,
-    isCancelling: data?.subscription?.status === 'canceled',
+    isCancelling: data?.subscription?.cancel_at_period_end ?? false,
     refreshSubscription,
   }
 }
