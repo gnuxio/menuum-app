@@ -39,6 +39,22 @@ export function isTokenExpired(): boolean {
   return Date.now() >= (parseInt(expiresAt) - REFRESH_BUFFER_MS);
 }
 
+// Obtener email del id_token decodificado
+export function getEmailFromToken(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const idToken = localStorage.getItem('id_token');
+  if (!idToken) return null;
+
+  try {
+    // Decodificar el payload del JWT (parte del medio)
+    const payload = JSON.parse(atob(idToken.split('.')[1]));
+    return payload.email || null;
+  } catch {
+    return null;
+  }
+}
+
 // Limpiar todos los tokens
 export function clearAuthTokens() {
   if (typeof window === 'undefined') return;

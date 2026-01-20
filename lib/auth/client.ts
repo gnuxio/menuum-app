@@ -5,7 +5,7 @@
  * Llama directamente al backend de auth en todos los entornos
  */
 
-import { setAuthTokens, getAccessToken, getRefreshToken, clearAuthTokens } from './tokens';
+import { setAuthTokens, getAccessToken, getRefreshToken, getEmailFromToken, clearAuthTokens } from './tokens';
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 const AUTH_URL = IS_PRODUCTION
@@ -159,7 +159,7 @@ export const authClient = {
 
   /**
    * Refrescar access token
-   * Envía refresh_token en el body
+   * Envía refresh_token y email en el body
    */
   async refresh(): Promise<AuthResponse> {
     const refreshToken = getRefreshToken();
@@ -167,9 +167,14 @@ export const authClient = {
       throw new Error('No refresh token available');
     }
 
+    const email = getEmailFromToken();
+    if (!email) {
+      throw new Error('No email found in token');
+    }
+
     const response = await authFetch('/refresh', {
       method: 'POST',
-      body: JSON.stringify({ refresh_token: refreshToken }),
+      body: JSON.stringify({ refresh_token: refreshToken, email }),
     });
 
     const data = await response.json();
